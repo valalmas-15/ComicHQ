@@ -13,13 +13,8 @@ export default defineConfig({
       "/api": {
         target: "http://server:3000",
         changeOrigin: true,
+        secure: false,
       },
     },
-  },
-  build: {
-    target: "esnext",
-  },
-  optimizeDeps: {
-    exclude: ["@solidjs/router"],
   },
 });

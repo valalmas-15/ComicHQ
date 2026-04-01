@@ -1,5 +1,4 @@
-export const API_BASE = "";
-console.log("[ComicHQ DEBUG] API Base is currently set to:", API_BASE || "(EMPTY STRING - RELATIVE MODE)");
+export const API_BASE = ""; // KOSONGKAN agar pakai Proxy Vite
 
 export async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("token");
@@ -8,19 +7,10 @@ export async function apiFetch(path, options = {}) {
     "Content-Type": "application/json",
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  return await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
   });
-
-  if (response.status === 401) {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  }
-
-  return response;
 }
