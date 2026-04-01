@@ -5,10 +5,14 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    volumes:
+      - ./server:/app/server
+      # Baris di bawah ini adalah "KUNCI": Mengisolasi node_modules
+      - /app/server/node_modules 
     deploy:
       resources:
         limits:
-          memory: 256M # Kita turunkan limitnya agar Odoo tetap lancar
+          memory: 256M
 
   client:
     build: ./client

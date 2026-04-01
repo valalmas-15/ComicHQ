@@ -1,19 +1,17 @@
-FROM node:22-bookworm-slim
+# Gunakan Bullseye karena library GLIBC-nya lebih ramah sistem lama
+FROM node:22-bullseye-slim
 
 WORKDIR /app/server
 
-# Install alat minimal untuk kompilasi sqlite3
+# Install sqlite3-dev agar npm bisa compile yang pas buat CPU kamu
 RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
+    python3 make g++ libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 
-# PENTING: Hapus node_modules di dalam container dan install ulang
-# Ini memastikan sqlite3 dikompilasi KHUSUS untuk laptopmu
-RUN npm install && npm rebuild sqlite3 --build-from-source
+# Paksa install ulang di dalam container
+RUN npm install
 
 COPY . .
 
