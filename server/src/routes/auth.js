@@ -54,9 +54,11 @@ module.exports = (db) => {
 
   // 🔑 LOGIN
   router.post("/login", async (req, res) => {
+    console.log("📨 Login request received for user:", req.body.username);
     const { username, password } = req.body;
     if (!username || !password)
       return res.status(400).json({ error: "Username and password required" });
+
 
     try {
       const user = await dbGet("SELECT * FROM users WHERE username = ?", [
