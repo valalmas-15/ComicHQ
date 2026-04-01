@@ -33,7 +33,7 @@ function App(props) {
 
   return (
     <div class={`app-container ${isReader() ? 'reader-mode' : ''}`}>
-      <Show when={!isReader()}>
+      <Show when={!isReader() && !isAuthPage()}>
         <Navbar />
       </Show>
 

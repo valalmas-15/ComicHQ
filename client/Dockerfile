@@ -1,5 +1,5 @@
 # Build stage: Use Node.js to build the Solid.js application
-FROM node:18-alpine as builder
+FROM node:20-alpine as builder
 
 WORKDIR /app/client
 

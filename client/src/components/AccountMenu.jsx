@@ -1,7 +1,7 @@
-/** @jsxImportSource solid-js */
-import { createSignal, onCleanup } from "solid-js";
+import { createSignal, onCleanup, Show } from "solid-js";
 import { useAuth } from "../contexts/AuthContext";
 import { A } from "@solidjs/router";
+import "./AccountMenu.css";
 
 function AccountMenu() {
   const { user, logout } = useAuth();
@@ -17,35 +17,48 @@ function AccountMenu() {
   document.addEventListener("click", handleClickOutside);
   onCleanup(() => document.removeEventListener("click", handleClickOutside));
 
+  const username = () => user()?.username || "Tamu";
+  const firstLetter = () => username().charAt(0).toUpperCase();
+
   return (
-    <div class="account-menu relative ml-auto">
+    <div class="account-menu">
       <button
         onClick={toggle}
-        class="avatar-btn bg-surface border border-border rounded-full w-10 h-10 flex items-center justify-center cursor-pointer"
+        class="avatar-btn"
+        title={username()}
       >
-        {/* Simple avatar: first letter of username or generic icon */}
-        {user() ? user().username.charAt(0).toUpperCase() : "U"}
+        {firstLetter()}
       </button>
-      {open() && (
-        <div class="dropdown absolute right-0 top-12 bg-surface border border-border rounded-xl min-w-36 shadow-lg z-1000">
-          <A
-            href="/profile"
-            class="dropdown-item block px-4 py-3 text-text no-underline"
-            onClick={close}
-          >
-            Profile
-          </A>
-          <button
-            onClick={() => {
-              logout();
-              window.location.href = "/login";
-            }}
-            class="dropdown-item w-full text-left px-4 py-3 bg-none border-none cursor-pointer text-danger"
-          >
-            Logout
-          </button>
+
+      <Show when={open()}>
+        <div class="account-dropdown">
+          <div class="dropdown-header">
+            <span class="welcome">Selamat datang,</span>
+            <span class="username">{username()}</span>
+          </div>
+          
+          <div class="dropdown-list">
+            <A href="/profile" class="dropdown-item" onClick={close}>
+              <i class="fas fa-user-circle"></i>
+              <span>Profil Saya</span>
+            </A>
+            
+            <div class="dropdown-divider"></div>
+            
+            <button
+              onClick={() => {
+                close();
+                logout();
+                window.location.href = "/login";
+              }}
+              class="dropdown-item logout"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Keluar Akun</span>
+            </button>
+          </div>
         </div>
-      )}
+      </Show>
     </div>
   );
 }

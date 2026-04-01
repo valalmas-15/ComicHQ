@@ -7,7 +7,7 @@ class Westmanga extends GenericWPProvider {
       item: 'div.grid div.overflow-hidden',
       title: 'p.font-medium',
       link: 'a[href*="/comic/"]',
-      image: 'img',
+      image: 'a[href*="/comic/"] img',
       chapter: 'div[data-slot="card"] a',
       searchPath: '/contents?q='
     });
