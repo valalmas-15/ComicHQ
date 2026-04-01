@@ -2,21 +2,19 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app/server
 
-# Install library pendukung sqlite (ringan)
+# Install alat minimal untuk kompilasi sqlite3
 RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    libsqlite3-dev \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 
-# Hapus lockfile agar npm cari versi yang paling pas untuk linux
-RUN rm -f package-lock.json
+# PENTING: Hapus node_modules di dalam container dan install ulang
+# Ini memastikan sqlite3 dikompilasi KHUSUS untuk laptopmu
+RUN npm install && npm rebuild sqlite3 --build-from-source
 
-# Install dependencies (NPM akan otomatis pilih binary yang cocok)
-RUN npm install --production
-
-# Salin semua file project
 COPY . .
 
 EXPOSE 3000
