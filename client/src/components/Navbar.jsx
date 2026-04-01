@@ -1,3 +1,4 @@
+/** @jsxImportSource solid-js */
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useAuth } from "../contexts/AuthContext";

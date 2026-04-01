@@ -1,3 +1,4 @@
+/** @jsxImportSource solid-js */
 import { createSignal, onCleanup, Show } from "solid-js";
 import { useAuth } from "../contexts/AuthContext";
 import { A } from "@solidjs/router";
