@@ -1,4 +1,5 @@
 export const API_BASE = "";
+console.log("[ComicHQ DEBUG] API Base is currently set to:", API_BASE || "(EMPTY STRING - RELATIVE MODE)");
 
 export async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("token");
