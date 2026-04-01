@@ -1,3 +1,4 @@
+/** @jsxImportSource solid-js */
 import { createSignal, onMount, Show } from "solid-js";
 import { useAuth } from "../contexts/AuthContext";
 import { apiFetch } from "../utils/api";
