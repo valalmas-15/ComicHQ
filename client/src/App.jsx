@@ -1,3 +1,4 @@
+/** @jsxImportSource solid-js */
 import { useLocation, A, Navigate } from "@solidjs/router";
 import Navbar from "./components/Navbar";
 import Library from "./components/Library";
