@@ -1,19 +1,14 @@
-FROM node:22-bookworm-slim
+FROM node:22-alpine
+
+# Install alat kompilasi minimal (hanya saat build, lalu dihapus)
+RUN apk add --no-cache python3 make g++ build-essential sqlite-dev
 
 WORKDIR /app/server
-
-# Kita hanya install library minimal yang dibutuhkan sqlite3 untuk jalan (runtime saja)
-RUN apt-get update && apt-get install -y \
-    libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY package*.json ./
 
-# Install biasa (tanpa build-from-source) agar cepat dan irit RAM
+# Install hanya dependencies produksi (tanpa devDeps agar RAM irit)
 RUN npm install --production
 
 COPY . .
-
 EXPOSE 3000
-
 CMD ["node", "index.js"]
