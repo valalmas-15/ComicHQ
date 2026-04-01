@@ -178,7 +178,10 @@ setTimeout(() => {
   setInterval(scanUpdates, 60 * 60 * 1000); // Check every 1 hour
 }, 5 * 60 * 1000); // Initial delay of 5 minutes
 
-app.use(cors());
+app.use(cors({
+  origin: true, // Izinkan semua origin selama development
+  credentials: true
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes(db));
