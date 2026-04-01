@@ -1,11 +1,8 @@
 services:
-  # BACKEND: Node.js API
   server:
     build: ./server
     container_name: comichq_server
     restart: always
-    environment:
-      PORT: 3000
     ports:
       - "3000:3000"
     deploy:
@@ -13,13 +10,10 @@ services:
         limits:
           memory: 512M
 
-  # CLIENT: Vite / React / Next.js (Tanpa Nginx)
   client:
     build: ./client
     container_name: comichq_client
     restart: always
-    # PENTING: Paksa aplikasi dengarkan 0.0.0.0 agar bisa diakses luar container
-    command: npm run dev -- --host 0.0.0.0 --port 3001
     ports:
       - "3001:3001"
     depends_on:
@@ -27,4 +21,4 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768M # Dev server biasanya lebih haus RAM daripada Nginx
+          memory: 768M
