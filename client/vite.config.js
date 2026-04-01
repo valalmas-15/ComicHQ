@@ -7,6 +7,13 @@ export default defineConfig({
   ],
   server: {
     port: 3001,
+    host: true, // Needed for Docker
+    proxy: {
+      '/api': {
+        target: 'http://server:3000',
+        changeOrigin: true,
+      }
+    }
   },
   build: {
     target: 'esnext',
@@ -15,3 +22,4 @@ export default defineConfig({
     exclude: ['@solidjs/router']
   }
 });
+
