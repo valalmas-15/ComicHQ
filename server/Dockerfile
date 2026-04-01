@@ -1,25 +1,21 @@
-# Stage 1: Builder (Dapur kompilasi)
-FROM node:22-alpine AS builder
-
-# Di Alpine, kita gunakan build-base dan sqlite-dev
-RUN apk add --no-cache python3 make g++ build-base sqlite-dev
+FROM node:22-bookworm-slim
 
 WORKDIR /app/server
+
+# Install library pendukung runtime (sangat ringan)
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 
-# Build sqlite3 dari source agar cocok dengan arsitektur laptopmu
-RUN npm install --build-from-source sqlite3
+# Hapus lockfile agar npm mencari binary yang cocok dengan Linux Debian
+RUN rm -f package-lock.json
 
-# Stage 2: Production (Hasil jadi yang enteng)
-FROM node:22-alpine
+# Install standar (npm akan otomatis cari binary 'sharp' dan 'sqlite' yang cocok)
+RUN npm install --production
 
-WORKDIR /app/server
-
-# Install library runtime saja (sangat kecil, hanya ~1MB)
-RUN apk add --no-cache sqlite-libs
-
-# Ambil node_modules yang sudah jadi dari builder
-COPY --from=builder /app/server/node_modules ./node_modules
 COPY . .
 
 EXPOSE 3000
