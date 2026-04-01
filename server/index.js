@@ -179,9 +179,10 @@ setTimeout(() => {
 }, 5 * 60 * 1000); // Initial delay of 5 minutes
 
 app.use(cors({
-  origin: true, // Izinkan semua origin selama development
+  origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
   credentials: true
 }));
+
 app.use(express.json());
 
 app.use("/api/auth", authRoutes(db));

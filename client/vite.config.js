@@ -6,14 +6,16 @@ export default defineConfig({
     solidPlugin()
   ],
   server: {
+    host: '0.0.0.0',
     port: 3001,
-    host: true, // Needed for Docker
+    allowedHosts: 'all',
     proxy: {
       '/api': {
-        target: 'http://server:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       }
     }
+
   },
   build: {
     target: 'esnext',
@@ -22,4 +24,5 @@ export default defineConfig({
     exclude: ['@solidjs/router']
   }
 });
+
 
