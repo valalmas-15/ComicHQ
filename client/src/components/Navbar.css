@@ -1,0 +1,167 @@
+/* --- CENTERED BRANDING & RESPONSIVE NAV --- */
+
+/* COMMON: Fixed Bars */
+.branding-bar, .nav-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(10, 15, 25, 0.96);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+/* 🏛️ BRANDING BAR: ALWAYS TOP */
+.branding-bar {
+  top: 0;
+  height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.branding-content {
+  width: 100%;
+  padding: 0 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.branding-left {
+  flex: 1; /* Spacer to push logo to center */
+}
+
+/* 🎯 CENTERED LOGO */
+.nav-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: white;
+  text-decoration: none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.nav-logo span {
+  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.branding-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* 📱 MOBILE: Nav at BOTTOM */
+@media (max-width: 767px) {
+  .nav-bar {
+    bottom: 0;
+    height: 64px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-links {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .nav-links a {
+    display: flex;
+    flex-direction: column; /* Icon ABOVE Text */
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    flex: 1;
+  }
+
+  .nav-links a i {
+    font-size: 1.2rem;
+    margin: 0 !important;
+  }
+
+  .nav-links a.active {
+    color: var(--primary);
+  }
+}
+
+/* 💻 DESKTOP: Nav at TOP (Under Branding) */
+@media (min-width: 768px) {
+  .nav-bar {
+    top: 72px; 
+    height: 52px;
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .nav-links {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    height: 100%;
+  }
+
+  .nav-links a {
+    display: flex;
+    flex-direction: row; /* Icon SIDE-BY-SIDE with Text */
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0 1.25rem;
+    height: 100%;
+    transition: all 0.2s;
+    gap: 10px; /* Space between icon and text */
+  }
+
+  .nav-links a i {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: white;
+  }
+
+  .nav-links a.active {
+    background: rgba(99, 102, 241, 0.1);
+  }
+}
+
+/* Fallback icons/mini-btn */
+.login-mini-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+}
+
+.login-mini-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}

@@ -1,0 +1,32 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: comichq_server
+    restart: always
+    environment:
+      # Assuming your Node.js server uses these environment variables to connect to the database
+      PORT: 3000
+      # Add any other environment variables your server needs here (e.g., JWT_SECRET)
+    ports:
+      - "3000:3000" # Expose server on port 3000
+    # Optional: Mount the server directory for live development (remove for production)
+    volumes:
+      - ./server:/app/server
+      - /app/server/node_modules # Prevent host's node_modules from overwriting container's
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: "/" # Set VITE_API_BASE for the client build to use relative paths
+    container_name: comichq_client
+    restart: always
+    ports:
+      - "80:80" # Expose client (Nginx) on port 80
+    depends_on:
+      - server # Client needs the server for API calls, Nginx will proxy
+    volumes:
+      - ./client/nginx.conf:/etc/nginx/conf.d/default.conf:ro # Mount custom Nginx config

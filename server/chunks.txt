@@ -1,0 +1,12 @@
+https://softkomik.co/_next/static/chunks/polyfills-c67a75d1b6f99dc8.js
+https://softkomik.co/_next/static/chunks/webpack-62c02dad1a6a4cb4.js
+https://softkomik.co/_next/static/chunks/framework-7751730b10fa0f74.js
+https://softkomik.co/_next/static/chunks/main-37388f4c6e119c80.js
+https://softkomik.co/_next/static/chunks/pages/_app-3852f0f29f293fbe.js
+https://softkomik.co/_next/static/chunks/333-3c07486958211501.js
+https://softkomik.co/_next/static/chunks/260-529cdcb1cd352d0b.js
+https://softkomik.co/_next/static/chunks/89-3a6bf317a1aebd99.js
+https://softkomik.co/_next/static/chunks/773-0d58fa46af81a845.js
+https://softkomik.co/_next/static/chunks/pages/index-212ab78c55bef099.js
+https://softkomik.co/_next/static/jf3d5EGPlfEXm_9zLeWj1/_buildManifest.js
+https://softkomik.co/_next/static/jf3d5EGPlfEXm_9zLeWj1/_ssgManifest.js
