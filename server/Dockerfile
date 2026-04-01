@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app/server
 
-# Install library pendukung runtime (sangat ringan)
+# Install library pendukung sqlite (ringan)
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     libsqlite3-dev \
@@ -10,12 +10,13 @@ RUN apt-get update && apt-get install -y \
 
 COPY package*.json ./
 
-# Hapus lockfile agar npm mencari binary yang cocok dengan Linux Debian
+# Hapus lockfile agar npm cari versi yang paling pas untuk linux
 RUN rm -f package-lock.json
 
-# Install standar (npm akan otomatis cari binary 'sharp' dan 'sqlite' yang cocok)
+# Install dependencies (NPM akan otomatis pilih binary yang cocok)
 RUN npm install --production
 
+# Salin semua file project
 COPY . .
 
 EXPOSE 3000
