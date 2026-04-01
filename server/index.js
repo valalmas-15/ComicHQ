@@ -183,13 +183,19 @@ app.use(cors({
   credentials: true
 }));
 
-
 app.use(express.json());
 
+// Load modular routes
 app.use("/api/auth", authRoutes(db));
+
+// 🛠️ Debug endpoint untuk tes langsung
+app.get("/api/debug-ping", (req, res) => {
+  res.json({ message: "Server is ALIVE and reachable!", time: new Date() });
+});
 
 // 🔄 Manual Scan Route
 app.post("/api/scan-updates", (req, res) => {
+
   // Run scan asynchronously without blocking response
   scanUpdates().catch((err) => console.error(err));
   res.json({
