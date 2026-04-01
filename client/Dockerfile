@@ -6,5 +6,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 3001
-# Jalankan langsung tanpa flag aneh-aneh
 CMD ["./node_modules/.bin/vite", "dev", "--host", "0.0.0.0", "--port", "3001"]
