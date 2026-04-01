@@ -25,7 +25,7 @@ services:
     container_name: comichq_client
     restart: always
     ports:
-      - "80:80" # Expose client (Nginx) on port 80
+      - "3001:3001" # Expose client (Nginx) on port 80
     depends_on:
       - server # Client needs the server for API calls, Nginx will proxy
     volumes:
