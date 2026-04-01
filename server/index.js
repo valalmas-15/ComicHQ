@@ -2,10 +2,10 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
-// ... import authRoutes kamu ...
+const authRoutes = require("./src/routes/auth");
 
 const app = express();
-const db = new sqlite3.Database("./database.db");
+const db = new sqlite3.Database("./comics.db");
 
 app.use(cors());
 app.use(express.json());
