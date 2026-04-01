@@ -179,9 +179,10 @@ setTimeout(() => {
 }, 5 * 60 * 1000); // Initial delay of 5 minutes
 
 app.use(cors({
-  origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
+  origin: true,
   credentials: true
 }));
+
 
 app.use(express.json());
 
