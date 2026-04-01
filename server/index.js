@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, "dist")));
 app.use("/api/auth", authRoutes(db));
 
 // 3. FALLBACK: Agar SPA (SolidJS Router) tidak 404 saat direfresh
-app.get("/*", (req, res) => {
+app.get("(.*)", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
