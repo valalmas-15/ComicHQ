@@ -14,8 +14,6 @@ services:
     build: ./client
     container_name: comichq_client
     restart: always
-    # Tambahkan flag --allowed-hosts all di baris command
-    command: npm run dev -- --host 0.0.0.0 --port 3001 --allowed-hosts all
     ports:
       - "3001:3001"
     depends_on:
