@@ -1,24 +1,24 @@
-# Stage 1: Siapkan "Dapur" (Kompilasi)
+# Stage 1: Builder (Dapur kompilasi)
 FROM node:22-alpine AS builder
 
-# Di Alpine, kita pakai build-base, bukan build-essential
+# Di Alpine, kita gunakan build-base dan sqlite-dev
 RUN apk add --no-cache python3 make g++ build-base sqlite-dev
 
 WORKDIR /app/server
 COPY package*.json ./
 
-# Install semua termasuk sqlite3 dari source agar cocok dengan CPU Acer
+# Build sqlite3 dari source agar cocok dengan arsitektur laptopmu
 RUN npm install --build-from-source sqlite3
 
-# Stage 2: Hasil Jadi (Hanya ambil yang penting)
+# Stage 2: Production (Hasil jadi yang enteng)
 FROM node:22-alpine
 
 WORKDIR /app/server
 
-# Kita butuh library runtime sqlite saja, sangat kecil
-RUN apk add --no-cache libsqlite3-dev
+# Install library runtime saja (sangat kecil, hanya ~1MB)
+RUN apk add --no-cache sqlite-libs
 
-# Ambil hasil masak dari Stage 1
+# Ambil node_modules yang sudah jadi dari builder
 COPY --from=builder /app/server/node_modules ./node_modules
 COPY . .
 
