@@ -461,6 +461,10 @@ input:focus {
   transition: transform 0.3s ease;
 }
 
+.reader-header.hidden {
+  transform: translateY(-100%);
+}
+
 .reader-back {
   background: rgba(255, 255, 255, 0.1);
   width: 40px;
