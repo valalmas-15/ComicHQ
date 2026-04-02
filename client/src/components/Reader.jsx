@@ -1,11 +1,12 @@
 /** @jsxImportSource solid-js */
 /** @jsxImportSource solid-js */
 import { createSignal, onMount, For, Show, onCleanup } from "solid-js";
-import { useParams, A, useSearchParams } from "@solidjs/router";
+import { useParams, A, useSearchParams, useNavigate } from "@solidjs/router";
 import { apiFetch, API_BASE } from "../utils/api";
 
 function Reader() {
   const params = useParams();
+  const navigate = useNavigate();
   const [pages, setPages] = createSignal([]); // Array of { url, chapterId, chapterIndex, pageNum }
   const [loadedChapterIds, setLoadedChapterIds] = createSignal(new Set());
   const [loading, setLoading] = createSignal(true);
@@ -284,11 +285,6 @@ function Reader() {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 2000) {
       fetchNextChapter();
     }
-    
-    // Check for top of scroll to load prev chapter
-    if (window.scrollY < 500 && !loading() && !loadingPrev()) {
-       fetchPrevChapter();
-    }
   };
 
   onMount(() => {
@@ -364,7 +360,17 @@ function Reader() {
   return (
     <div class="reader-container">
       <header class="reader-header" classList={{ hidden: !showHeader() }}>
-        <button onClick={() => window.history.back()} class="reader-back">
+        <button 
+          onClick={() => {
+            const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : "";
+            if (sourceUrl) {
+              navigate(`/manga/${params.provider}/${encodeURIComponent(sourceUrl)}`);
+            } else {
+              window.history.back();
+            }
+          }} 
+          class="reader-back"
+        >
           ←
         </button>
         
