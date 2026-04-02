@@ -6,7 +6,7 @@ class Mangabat extends BaseProvider {
   constructor() {
     super("Mangabat", "https://www.mangabats.com");
     this.mirrors = [
-      "https://www.mangabats.com",
+      "https://chapmanganato.to",
       "https://manganato.com",
       "https://readmangabat.com"
     ];
@@ -16,14 +16,11 @@ class Mangabat extends BaseProvider {
     for (const mirror of this.mirrors) {
       try {
         const url = `${mirror}${path}${query ? encodeURIComponent(query.replace(/ /g, '_')) : ''}`;
-        const { data } = await axios.get(url, {
-          headers: { 
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36', 
-            'Referer': mirror 
-          },
-          timeout: 5000
+        const { data } = await this.fetch(url, {
+          headers: { 'Referer': mirror },
+          timeout: 8000
         });
-        if (data && data.includes('story')) return { data, baseUrl: mirror };
+        if (data && (data.includes('story') || data.includes('chapter'))) return { data, baseUrl: mirror };
       } catch (e) {
         console.warn(`${this.name} Mirror ${mirror} failed:`, e.message);
       }
@@ -88,8 +85,8 @@ class Mangabat extends BaseProvider {
 
   async getChapters(mangaUrl) {
     try {
-      const { data } = await axios.get(mangaUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.mangabats.com/' }
+      const { data } = await this.fetch(mangaUrl, {
+        headers: { 'Referer': 'https://www.mangabats.com/' }
       });
       const $ = cheerio.load(data);
       
@@ -120,8 +117,8 @@ class Mangabat extends BaseProvider {
 
   async getPages(chapterUrl) {
     try {
-      const { data } = await axios.get(chapterUrl, {
-        headers: { 'Referer': 'https://www.mangabats.com/', 'User-Agent': 'Mozilla/5.0' }
+      const { data } = await this.fetch(chapterUrl, {
+        headers: { 'Referer': 'https://www.mangabats.com/' }
       });
       const $ = cheerio.load(data);
       return $('.container-chapter-reader img, .img-content img, #v_content img').map((i, el) => {

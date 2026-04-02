@@ -9,6 +9,10 @@ services:
       - ./server:/app/server
       # Baris di bawah ini adalah "KUNCI": Mengisolasi node_modules
       - /app/server/node_modules 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - SOCKS_PROXY_URL=socks5://host.docker.internal:40000
     deploy:
       resources:
         limits:
