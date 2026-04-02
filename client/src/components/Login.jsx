@@ -1,3 +1,4 @@
+/** @jsxImportSource solid-js */
 import { createSignal, createMemo, Show } from "solid-js";
 import { useNavigate, useLocation, A } from "@solidjs/router";
 import { useAuth } from "../contexts/AuthContext";
