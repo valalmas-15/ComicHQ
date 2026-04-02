@@ -13,11 +13,6 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - SOCKS_PROXY_URL=socks5://host.docker.internal:40000
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-
   client:
     build: ./client
     container_name: comichq_client
