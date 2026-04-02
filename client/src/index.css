@@ -472,6 +472,10 @@ input:focus {
   gap: 1rem;
 }
 
+.reader-header.hidden {
+  transform: translateY(-100%);
+}
+
 .reader-nav-controls {
   flex: 1;
   display: flex;
