@@ -11,10 +11,10 @@ function Reader() {
   const [loadingNext, setLoadingNext] = createSignal(false);
   const [error, setError] = createSignal(null);
   const [currentPage, setCurrentPage] = createSignal(1);
-  const [visibleIndices, setVisibleIndices] = createSignal([]);
   const [showHeader, setShowHeader] = createSignal(true);
   const [chapters, setChapters] = createSignal([]);
   const [currentChapterIndex, setCurrentChapterIndex] = createSignal(-1);
+  const [maxLoadedIndex, setMaxLoadedIndex] = createSignal(2); // Start by allowing first 3 pages
   let lastScrollY = window.scrollY;
 
   let syncTimer;
@@ -31,7 +31,8 @@ function Reader() {
       );
       const data = await response.json();
       setPages(Array.isArray(data) ? data : []);
-      setVisibleIndices(new Array(data.length).fill(true));
+      // Reset maxLoadedIndex for new chapter
+      setMaxLoadedIndex(2);
 
       // 2. Fetch all chapters to know what's next
       if (sourceUrl) {
@@ -39,7 +40,12 @@ function Reader() {
         const chaptersData = await chaptersRes.json();
         setChapters(chaptersData);
         
-        const currentIndex = chaptersData.findIndex(c => c.id === chapterUrl);
+        // Find current index more robustly
+        const currentIndex = chaptersData.findIndex(c => {
+          const cid = c.id.replace(/\/$/, "");
+          const curl = chapterUrl.replace(/\/$/, "");
+          return cid === curl || cid.endsWith(curl) || curl.endsWith(cid);
+        });
         setCurrentChapterIndex(currentIndex);
       }
     } catch (err) {
@@ -50,16 +56,34 @@ function Reader() {
     }
   };
 
-  const fetchNextChapter = async () => {
-    if (loadingNext() || currentChapterIndex() <= 0) return; // Index 0 is often the latest chapter, chapters are usually sorted desc
-
-    const nextIndex = currentChapterIndex() - 1; // Assuming descending order (Chapter 2 is index n-1 if Chapter 1 is index n)
-    // Wait, let's check order. Usually 10, 9, 8... 1.
-    // If current is Chapter 9 (index 1), next is Chapter 10 (index 0).
-    // Let's assume the user wants to read in increasing order (1 -> 2 -> 3).
-    // In most manga sites, index 0 is the NEWEST (highest number).
-    // So "Next" in reading order is the one with SMALLER index.
+  const switchToChapter = (chapter) => {
+    if (!chapter) return;
+    setLoading(true);
+    setPages([]);
+    setCurrentPage(1);
+    setMaxLoadedIndex(2);
+    // Use navigate to update URL without full reload if possible, 
+    // or just fetch new pages and update state
+    const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : "";
+    const mangaTitle = searchParams.manga_title ? decodeURIComponent(searchParams.manga_title) : "";
+    const thumb = searchParams.thumb ? decodeURIComponent(searchParams.thumb) : "";
     
+    // Update URL manually to keep it in sync
+    const newUrl = `/read/${params.provider}/${encodeURIComponent(chapter.id)}?source=${encodeURIComponent(sourceUrl)}&manga_title=${encodeURIComponent(mangaTitle)}&thumb=${encodeURIComponent(thumb)}`;
+    window.history.pushState({}, '', newUrl);
+    
+    // Update params manually since we aren't using navigate() to avoid remount flicker
+    params.url = chapter.id;
+    fetchPages();
+    window.scrollTo(0, 0);
+  };
+
+  const fetchNextChapter = async () => {
+    // currentChapterIndex === 0 means we are at the very top (usually newest)
+    if (loadingNext() || currentChapterIndex() <= 0) return; 
+
+    // In descending order list: Current = 5 (Index 2), Next = 6 (Index 1)
+    const nextIndex = currentChapterIndex() - 1; 
     const nextChapter = chapters()[nextIndex];
     if (!nextChapter) return;
 
@@ -187,19 +211,6 @@ function Reader() {
       }
     });
 
-    const windowTop = window.scrollY - 1500;
-    const windowBottom = window.scrollY + window.innerHeight + 1500;
-
-    const nextVisibility = pages().map((_, i) => {
-      const el = document.getElementById(`page-${i}`);
-      if (!el) return true;
-      const rect = el.getBoundingClientRect();
-      const top = rect.top + window.scrollY;
-      const bottom = rect.bottom + window.scrollY;
-      return bottom >= windowTop && top <= windowBottom;
-    });
-    setVisibleIndices(nextVisibility);
-
     if (syncTimer) clearTimeout(syncTimer);
     syncTimer = setTimeout(syncProgress, 2000);
 
@@ -225,36 +236,55 @@ function Reader() {
   // Sub-component for individual pages to handle loading state
   const PageItem = (props) => {
     const [loaded, setLoaded] = createSignal(false);
+    const [inView, setInView] = createSignal(false);
+    let containerRef;
+
+    // Ordered & Viewport-aware loading logic
+    const shouldLoad = () => props.index <= maxLoadedIndex() || inView();
+
+    onMount(() => {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      }, { rootMargin: '500px' });
+      if (containerRef) observer.observe(containerRef);
+    });
+
+    const onImageLoaded = () => {
+      setLoaded(true);
+      // When this image loads, allow the next ones to start
+      if (props.index >= maxLoadedIndex() - 1) {
+        setMaxLoadedIndex(props.index + 2); // Buffer of 2
+      }
+    };
+
     return (
       <div
         id={`page-${props.index}`}
+        ref={containerRef}
         class="reader-image-container"
-        classList={{
-          "min-h-screen": !visibleIndices()[props.index],
-          "bg-gray-900": true,
-        }}
+        classList={{ "bg-gray-900": true }}
       >
-        <Show when={visibleIndices()[props.index]}>
-          {!loaded() && (
-            <div class="page-loader">
-              <div class="loading-spinner-small"></div>
-              <span>Halaman {props.index + 1}</span>
-            </div>
-          )}
+        {!loaded() && (
+          <div class="page-loader">
+            <div class="loading-spinner-small"></div>
+            <span>Halaman {props.index + 1}</span>
+          </div>
+        )}
+        <Show when={shouldLoad()}>
           <img
             src={getProxyUrl(props.url)}
             alt={`Page ${props.index + 1}`}
             class="reader-image"
             classList={{ loaded: loaded() }}
-            onLoad={() => setLoaded(true)}
+            onLoad={onImageLoaded}
             onerror={(e) => {
               e.currentTarget.src =
                 "https://dummyimage.com/800x1200?text=Gagal+Memuat+Gambar";
             }}
           />
-        </Show>
-        <Show when={!visibleIndices()[props.index]}>
-          <div class="placeholder-page">Lembaran {props.index + 1}</div>
         </Show>
       </div>
     );
@@ -266,13 +296,46 @@ function Reader() {
         <button onClick={() => window.history.back()} class="reader-back">
           ←
         </button>
-        <div class="reader-info">
-          <span class="chapter-label">
-            {chapters()[currentChapterIndex()]?.title || "Memuat..."}
-          </span>
-          <span class="page-counter">
-            Halaman {currentPage()} / {pages().length}
-          </span>
+        
+        <div class="reader-nav-controls">
+          <button 
+            class="nav-btn" 
+            disabled={currentChapterIndex() >= chapters().length - 1}
+            onClick={() => switchToChapter(chapters()[currentChapterIndex() + 1])}
+          >
+            Prev
+          </button>
+
+          <div class="chapter-selector-wrapper">
+            <select 
+              class="chapter-select"
+              value={chapters()[currentChapterIndex()]?.id}
+              onChange={(e) => {
+                const selected = chapters().find(c => c.id === e.target.value);
+                switchToChapter(selected);
+              }}
+            >
+              <For each={chapters()}>
+                {(chapter, index) => (
+                  <option value={chapter.id} selected={index() === currentChapterIndex()}>
+                    {chapter.title}
+                  </option>
+                )}
+              </For>
+            </select>
+          </div>
+
+          <button 
+            class="nav-btn" 
+            disabled={currentChapterIndex() <= 0}
+            onClick={() => switchToChapter(chapters()[currentChapterIndex() - 1])}
+          >
+            Next
+          </button>
+        </div>
+
+        <div class="reader-progress-mini">
+           {currentPage()} / {pages().length}
         </div>
       </header>
 

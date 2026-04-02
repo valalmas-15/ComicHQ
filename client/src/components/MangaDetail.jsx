@@ -4,6 +4,8 @@ import { createSignal, onMount, For, Show, createEffect } from "solid-js";
 import { useParams, A } from "@solidjs/router";
 import { apiFetch, API_BASE } from "../utils/api";
 
+const mangaCache = new Map();
+
 function MangaDetail() {
   const params = useParams();
   const [chapters, setChapters] = createSignal([]);
@@ -11,36 +13,56 @@ function MangaDetail() {
   const [readChapterIds, setReadChapterIds] = createSignal([]);
   const [selected, setSelected] = createSignal([]);
   const [isSelecting, setIsSelecting] = createSignal(false);
-
-  const [mangaId, setMangaId] = createSignal(null);
   const [manga, setManga] = createSignal(null);
+  const [mangaId, setMangaId] = createSignal(null);
 
   const fetchDetails = async () => {
+    const url = decodeURIComponent(params.url);
+    const cacheKey = `${params.provider}-${url}`;
+
+    // 1. Check Cache first for instant load
+    if (mangaCache.has(cacheKey)) {
+      const cached = mangaCache.get(cacheKey);
+      setChapters(cached.chapters);
+      setManga(cached.manga);
+      setMangaId(cached.mangaId);
+      setReadChapterIds(cached.readChapterIds || []);
+      setLoading(false); // Show data immediately
+    }
+
     try {
-      setLoading(true);
-      const url = decodeURIComponent(params.url);
+      if (!mangaCache.has(cacheKey)) setLoading(true);
+      
       const provider = params.provider;
 
-      // 1. Get manga info/id from library
-      const libRes = await apiFetch(`/api/library`);
+      // Fetch fresh data in background or foreground if no cache
+      const [libRes, chaptersRes] = await Promise.all([
+        apiFetch(`/api/library`),
+        apiFetch(`/api/chapters?url=${encodeURIComponent(url)}&provider=${provider}`)
+      ]);
+
       const library = await libRes.json();
+      const chaptersData = await chaptersRes.json();
+      
       const mangaData = library.find((m) => m.source_id === url);
       setManga(mangaData);
+      setChapters(chaptersData);
 
+      let freshReadIds = [];
       if (mangaData) {
         setMangaId(mangaData.id);
-        // 2. Get read chapters for this manga
         const readRes = await apiFetch(`/api/read-chapters/${mangaData.id}`);
-        const readData = await readRes.json();
-        setReadChapterIds(Array.isArray(readData) ? readData : []);
+        freshReadIds = await readRes.json();
+        setReadChapterIds(freshReadIds);
       }
 
-      // 3. Get all chapters from provider
-      const response = await fetch(
-        `${API_BASE}/api/chapters?url=${encodeURIComponent(url)}&provider=${provider}`,
-      );
-      const data = await response.json();
-      setChapters(data);
+      // Update Cache
+      mangaCache.set(cacheKey, {
+        chapters: chaptersData,
+        manga: mangaData,
+        mangaId: mangaData ? mangaData.id : null,
+        readChapterIds: freshReadIds
+      });
     } catch (err) {
       console.error(err);
     } finally {

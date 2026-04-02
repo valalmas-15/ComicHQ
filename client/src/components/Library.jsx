@@ -3,30 +3,35 @@ import { createSignal, onMount, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import { apiFetch, API_BASE } from "../utils/api";
 
+const libraryCache = {
+  data: null,
+  timestamp: 0
+};
+
 function Library() {
-  const [library, setLibrary] = createSignal([]);
-  const [loading, setLoading] = createSignal(true);
+  const [library, setLibrary] = createSignal(libraryCache.data || []);
+  const [loading, setLoading] = createSignal(!libraryCache.data);
+  const [error, setError] = createSignal(null);
 
   const fetchLibrary = async () => {
-    setLoading(true);
+    // If we have cached data, we already set it in initial signal state
+    // so we just fetch in background to stay fresh.
     try {
-      // Force refresh by adding timestamp to avoids potential caching in some environments
       const response = await apiFetch(`/api/library?_t=${Date.now()}`, {
         cache: "no-store",
         headers: { "Pragma": "no-cache" }
       });
       
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Server error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
       
       const data = await response.json();
-      setLibrary(Array.isArray(data) ? data : []);
+      const freshData = Array.isArray(data) ? data : [];
+      
+      setLibrary(freshData);
+      libraryCache.data = freshData;
+      libraryCache.timestamp = Date.now();
     } catch (err) {
       console.error("Library fetch failed:", err);
-      setError(err.message);
-      // Local fallback only if truly empty
       if (library().length === 0) {
         const local = JSON.parse(localStorage.getItem("manga_library") || "[]");
         if (local.length > 0) setLibrary(local);
@@ -35,8 +40,6 @@ function Library() {
       setLoading(false);
     }
   };
-
-  const [error, setError] = createSignal(null);
   onMount(fetchLibrary);
 
   const removeFromLibrary = async (id, source_id) => {

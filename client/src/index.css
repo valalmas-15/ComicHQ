@@ -460,32 +460,87 @@ input:focus {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(13, 17, 23, 0.95);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1.5rem;
+  height: 60px;
   display: flex;
   align-items: center;
-  gap: 2rem;
-  z-index: 9999;
+  padding: 0 1rem;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
+  gap: 1rem;
 }
 
-.reader-header.hidden {
-  transform: translateY(-100%);
-}
-
-.reader-back {
-  background: rgba(255, 255, 255, 0.1);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.reader-nav-controls {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
+  gap: 0.5rem;
+  max-width: 600px;
+}
+
+.nav-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: var(--primary);
+  transform: translateY(-1px);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.chapter-selector-wrapper {
+  flex: 1;
+  max-width: 300px;
+}
+
+.chapter-select {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.chapter-select:focus {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reader-progress-mini {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: right;
+}
+
+.reader-back {
+  background: none;
+  border: none;
   color: white;
   font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
   transition: background 0.2s;
 }
 
