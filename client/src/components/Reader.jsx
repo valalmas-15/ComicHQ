@@ -13,6 +13,7 @@ function Reader() {
   const [error, setError] = createSignal(null);
   const [currentPage, setCurrentPage] = createSignal(1);
   const [activeChapterId, setActiveChapterId] = createSignal("");
+  const [loadingPrev, setLoadingPrev] = createSignal(false);
   const [showHeader, setShowHeader] = createSignal(true);
   const [chapters, setChapters] = createSignal([]);
   const [currentChapterIndex, setCurrentChapterIndex] = createSignal(-1);
@@ -117,6 +118,47 @@ function Reader() {
       console.error("Failed to load next chapter", err);
     } finally {
       setLoadingNext(false);
+    }
+  };
+
+  const fetchPrevChapter = async () => {
+    // Going backward (older chapters)
+    if (loadingPrev() || currentChapterIndex() >= chapters().length - 1) return;
+
+    const prevIndex = currentChapterIndex() + 1;
+    const prevChapter = chapters()[prevIndex];
+    if (loadedChapterIds().has(prevChapter.id)) return;
+
+    setLoadingPrev(true);
+    try {
+      const response = await apiFetch(
+        `/api/pages?url=${encodeURIComponent(prevChapter.id)}&provider=${params.provider}`,
+      );
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        const newPages = data.map((url, i) => ({
+           url,
+           chapterId: prevChapter.id,
+           pageNum: i + 1
+        }));
+        
+        // Save current scroll height to adjust later
+        const oldHeight = document.body.offsetHeight;
+        const oldScroll = window.scrollY;
+
+        setPages([...newPages, ...pages()]);
+        setLoadedChapterIds(prev => new Set(prev).add(prevChapter.id));
+
+        // Wait for Solid to update DOM then adjust scroll
+        setTimeout(() => {
+          const newHeight = document.body.offsetHeight;
+          window.scrollTo(0, oldScroll + (newHeight - oldHeight));
+        }, 50);
+      }
+    } catch (err) {
+      console.error("Failed to load prev chapter", err);
+    } finally {
+      setLoadingPrev(false);
     }
   };
 
@@ -241,6 +283,11 @@ function Reader() {
     // Check for end of scroll to load next chapter
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 2000) {
       fetchNextChapter();
+    }
+    
+    // Check for top of scroll to load prev chapter
+    if (window.scrollY < 500 && !loading() && !loadingPrev()) {
+       fetchPrevChapter();
     }
   };
 
