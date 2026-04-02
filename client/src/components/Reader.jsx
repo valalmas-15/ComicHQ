@@ -290,11 +290,13 @@ function Reader() {
   onMount(() => {
     fetchPages();
     window.addEventListener("scroll", handleScroll, { passive: true });
+    document.body.classList.add("reader-mode");
   });
 
   onCleanup(() => {
     window.removeEventListener("scroll", handleScroll);
     if (syncTimer) clearTimeout(syncTimer);
+    document.body.classList.remove("reader-mode");
   });
 
   const getProxyUrl = (url) =>
