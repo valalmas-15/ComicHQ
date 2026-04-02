@@ -6,11 +6,13 @@ import { apiFetch, API_BASE } from "../utils/api";
 
 function Reader() {
   const params = useParams();
-  const [pages, setPages] = createSignal([]);
+  const [pages, setPages] = createSignal([]); // Array of { url, chapterId, chapterIndex, pageNum }
+  const [loadedChapterIds, setLoadedChapterIds] = createSignal(new Set());
   const [loading, setLoading] = createSignal(true);
   const [loadingNext, setLoadingNext] = createSignal(false);
   const [error, setError] = createSignal(null);
   const [currentPage, setCurrentPage] = createSignal(1);
+  const [activeChapterId, setActiveChapterId] = createSignal("");
   const [showHeader, setShowHeader] = createSignal(true);
   const [chapters, setChapters] = createSignal([]);
   const [currentChapterIndex, setCurrentChapterIndex] = createSignal(-1);
@@ -30,7 +32,15 @@ function Reader() {
         `/api/pages?url=${encodeURIComponent(chapterUrl)}&provider=${provider}`,
       );
       const data = await response.json();
-      setPages(Array.isArray(data) ? data : []);
+      const formattedPages = (Array.isArray(data) ? data : []).map((url, i) => ({
+         url,
+         chapterId: chapterUrl,
+         pageNum: i + 1
+      }));
+      setPages(formattedPages);
+      setLoadedChapterIds(new Set([chapterUrl]));
+      setActiveChapterId(chapterUrl);
+      
       // Reset maxLoadedIndex for new chapter
       setMaxLoadedIndex(2);
 
@@ -60,6 +70,7 @@ function Reader() {
     if (!chapter) return;
     setLoading(true);
     setPages([]);
+    setLoadedChapterIds(new Set());
     setCurrentPage(1);
     setMaxLoadedIndex(2);
     // Use navigate to update URL without full reload if possible, 
@@ -85,7 +96,7 @@ function Reader() {
     // In descending order list: Current = 5 (Index 2), Next = 6 (Index 1)
     const nextIndex = currentChapterIndex() - 1; 
     const nextChapter = chapters()[nextIndex];
-    if (!nextChapter) return;
+    if (loadedChapterIds().has(nextChapter.id)) return;
 
     setLoadingNext(true);
     try {
@@ -94,9 +105,13 @@ function Reader() {
       );
       const data = await response.json();
       if (Array.isArray(data)) {
-        setPages([...pages(), ...data]);
-        setVisibleIndices(new Array(pages().length).fill(true));
-        setCurrentChapterIndex(nextIndex);
+        const newPages = data.map((url, i) => ({
+           url,
+           chapterId: nextChapter.id,
+           pageNum: i + 1
+        }));
+        setPages([...pages(), ...newPages]);
+        setLoadedChapterIds(prev => new Set(prev).add(nextChapter.id));
       }
     } catch (err) {
       console.error("Failed to load next chapter", err);
@@ -137,8 +152,8 @@ function Reader() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           manga_id: manga ? manga.id : null,
-          chapter_id: chapterUrl,
-          chapter_title: rawChapterTitle,
+          chapter_id: activeChapterId() || chapterUrl,
+          chapter_title: chapters().find(c => c.id === activeChapterId())?.title || rawChapterTitle,
           last_page: currentPage(),
 
           manga_title: searchParams.manga_title
@@ -207,7 +222,16 @@ function Reader() {
       const top = container.offsetTop;
       const height = container.offsetHeight;
       if (top <= scrollPos && top + height > scrollPos) {
-        setCurrentPage(index + 1);
+        const pageObj = pages()[index];
+        if (pageObj) {
+          setCurrentPage(pageObj.pageNum);
+          if (pageObj.chapterId !== activeChapterId()) {
+            setActiveChapterId(pageObj.chapterId);
+            // Update currentChapterIndex based on the activeChapterId
+            const newIdx = chapters().findIndex(c => c.id === pageObj.chapterId);
+            if (newIdx !== -1) setCurrentChapterIndex(newIdx);
+          }
+        }
       }
     });
 
@@ -348,7 +372,7 @@ function Reader() {
 
       <div class="reader-content">
         <For each={pages()}>
-          {(page, index) => <PageItem url={page} index={index()} />}
+          {(page, index) => <PageItem url={page.url} index={index()} />}
         </For>
       </div>
 
