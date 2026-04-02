@@ -1,14 +1,17 @@
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
-import basicSsl from "@vitejs/plugin-basic-ssl";
 
 export default defineConfig({
-  plugins: [solidPlugin(), basicSsl()],
+  plugins: [solidPlugin()],
   server: {
     host: "0.0.0.0",
-    https: true,
+    https: false,
     port: 3001,
     allowedHosts: "all",
+    hmr: {
+      protocol: "wss",
+      clientPort: 443,
+    },
     proxy: {
       "/api": {
         target: "http://server:3000",
