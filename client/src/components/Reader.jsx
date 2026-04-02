@@ -222,16 +222,56 @@ function Reader() {
   const getProxyUrl = (url) =>
     `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;
 
+  // Sub-component for individual pages to handle loading state
+  const PageItem = (props) => {
+    const [loaded, setLoaded] = createSignal(false);
+    return (
+      <div
+        id={`page-${props.index}`}
+        class="reader-image-container"
+        classList={{
+          "min-h-screen": !visibleIndices()[props.index],
+          "bg-gray-900": true,
+        }}
+      >
+        <Show when={visibleIndices()[props.index]}>
+          {!loaded() && (
+            <div class="page-loader">
+              <div class="loading-spinner-small"></div>
+              <span>Halaman {props.index + 1}</span>
+            </div>
+          )}
+          <img
+            src={getProxyUrl(props.url)}
+            alt={`Page ${props.index + 1}`}
+            class="reader-image"
+            classList={{ loaded: loaded() }}
+            onLoad={() => setLoaded(true)}
+            onerror={(e) => {
+              e.currentTarget.src =
+                "https://dummyimage.com/800x1200?text=Gagal+Memuat+Gambar";
+            }}
+          />
+        </Show>
+        <Show when={!visibleIndices()[props.index]}>
+          <div class="placeholder-page">Lembaran {props.index + 1}</div>
+        </Show>
+      </div>
+    );
+  };
+
   return (
     <div class="reader-container">
       <header class="reader-header" classList={{ hidden: !showHeader() }}>
-        <A href="/" class="reader-back">
+        <button onClick={() => window.history.back()} class="reader-back">
           ←
-        </A>
+        </button>
         <div class="reader-info">
-          <span class="chapter-label">Chapter Reading</span>
+          <span class="chapter-label">
+            {chapters()[currentChapterIndex()]?.title || "Memuat..."}
+          </span>
           <span class="page-counter">
-            {currentPage()} / {pages().length}
+            Halaman {currentPage()} / {pages().length}
           </span>
         </div>
       </header>
@@ -252,37 +292,13 @@ function Reader() {
 
       <div class="reader-content">
         <For each={pages()}>
-          {(page, index) => (
-            <div
-              id={`page-${index()}`}
-              class="reader-image-container"
-              classList={{
-                "min-h-screen": !visibleIndices()[index()],
-                "bg-gray-900": true,
-              }}
-            >
-              <Show when={visibleIndices()[index()]}>
-                <img
-                  src={getProxyUrl(page)}
-                  alt={`Page ${index() + 1}`}
-                  class="reader-image"
-                  onerror={(e) => {
-                    e.target.src =
-                      "https://dummyimage.com/800x1200?text=Failed+to+load+image";
-                  }}
-                />
-              </Show>
-              <Show when={!visibleIndices()[index()]}>
-                <div class="placeholder-page">Lembaran {index() + 1}</div>
-              </Show>
-            </div>
-          )}
+          {(page, index) => <PageItem url={page} index={index()} />}
         </For>
       </div>
 
       <div class="reader-footer">
         <Show when={loadingNext()}>
-          <div class="spinner"></div>
+          <div class="loading-spinner-small"></div>
           <p>Memuat chapter selanjutnya...</p>
         </Show>
         <Show when={!loadingNext() && currentChapterIndex() <= 0}>

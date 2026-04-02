@@ -511,15 +511,45 @@ input:focus {
 .reader-image-container {
   width: 100%;
   max-width: 800px;
+  min-height: 400px; /* Prevent total collapse */
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  background: #0a0a0a;
+}
+
+.page-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #475569;
+}
+
+.loading-spinner-small {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-left-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .reader-image {
   width: 100%;
   height: auto;
   display: block;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.reader-image.loaded {
+  opacity: 1;
 }
 
 .placeholder-page {
