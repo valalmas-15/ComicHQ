@@ -276,13 +276,6 @@ function Reader() {
         </div>
       </header>
 
-      <Show when={loading()}>
-        <div class="reader-loading">
-          <div class="spinner"></div>
-          <p>Memuat lembaran komik...</p>
-        </div>
-      </Show>
-
       <Show when={error()}>
         <div class="reader-error">
           <p>⚠️ {error()}</p>
