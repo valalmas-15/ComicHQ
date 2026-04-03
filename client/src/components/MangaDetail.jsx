@@ -68,8 +68,8 @@ function MangaDetail() {
       if (mangaData) {
         setMangaId(mangaData.id);
         const [readRes, lastRes] = await Promise.all([
-          apiFetch(`/api/history/${mangaData.id}`),
-          apiFetch(`/api/history/last/${mangaData.id}`)
+          apiFetch(`/api/read-chapters/${mangaData.id}?t=${Date.now()}`),
+          apiFetch(`/api/history/last/${mangaData.id}?t=${Date.now()}`)
         ]);
         freshReadIds = await readRes.json();
         freshLastRead = await lastRes.json();
@@ -122,8 +122,8 @@ function MangaDetail() {
       if (response.ok) {
         // Refresh read list
         const [readRes, lastRes] = await Promise.all([
-          apiFetch(`/api/history/${mangaId()}`),
-          apiFetch(`/api/history/last/${mangaId()}`)
+          apiFetch(`/api/read-chapters/${mangaId()}?t=${Date.now()}`),
+          apiFetch(`/api/history/last/${mangaId()}?t=${Date.now()}`)
         ]);
         const readData = await readRes.json();
         const lastData = await lastRes.json();
