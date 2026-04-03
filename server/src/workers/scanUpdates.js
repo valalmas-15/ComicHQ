@@ -24,9 +24,10 @@ async function scanUpdates() {
         const chapters = await p.getChapters(manga.source_id);
         const latestCount = chapters.length;
 
-        if (latestCount > (manga.last_chapter_count || 0)) {
+        // Populate metadata if it's a new update OR if the metadata columns are missing
+        if (latestCount > (manga.last_chapter_count || 0) || !manga.latest_chapter_title) {
           const latestChapter = chapters[0]; // Most providers have newest at top
-          console.log(`✨ New chapters for ${manga.title}: ${latestChapter.title} (${latestChapter.date || 'Update'})`);
+          console.log(`✨ Syncing chapter info for ${manga.title}: ${latestChapter.title} (${latestChapter.date || 'Update'})`);
           
           db.run(
             'UPDATE manga_library SET last_chapter_count = ?, latest_chapter_title = ?, latest_chapter_id = ?, latest_chapter_date = ?, has_update = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',

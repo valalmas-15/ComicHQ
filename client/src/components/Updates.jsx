@@ -105,17 +105,16 @@ function Updates() {
                     <h3 class="update-manga-title">{manga.title}</h3>
                   </div>
                   
-                  <div class="latest-chapter-info-row" style={{ "margin-top": "6px" }}>
-                    <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "900", "font-size": "1.1rem", "margin": "0" }}>
-                      {manga.latest_chapter_title || `Chapter Baru`}
+                  <div class="latest-chapter-info-row" style={{ "margin-top": "4px" }}>
+                    <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "900", "font-size": "1.05rem", "margin": "0" }}>
+                      {manga.latest_chapter_title}
                     </p>
                   </div>
                   
-                  <div class="history-meta" style={{ "margin-top": "auto" }}>
-                     <span class="time-ago">
-                       <i class="far fa-clock mr-1" style={{ "font-size": "0.8rem" }}></i>
-                       {manga.latest_chapter_date || formatRelativeTime(manga.updated_at)}
-                     </span>
+                  <div class="history-meta" style={{ "margin-top": "auto", "display": "flex", "align-items": "center", "gap": "10px" }}>
+                    <span class="time-ago" style={{ "font-size": "0.75rem", "color": "var(--text-muted)", "display": "flex", "align-items": "center", "gap": "4px" }}>
+                      <i class="far fa-clock"></i> {manga.latest_chapter_date || formatRelativeTime(manga.updated_at)}
+                    </span>
                   </div>
                 </div>
               </A>
