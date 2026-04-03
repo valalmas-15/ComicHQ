@@ -158,7 +158,7 @@ function Reader() {
       {/* 1. Header Navigasi (Pixel-Perfect Global Style) */}
       <div 
         class={`reader-controls top ${showControls() ? "visible" : ""}`} 
-        style="z-index: 4000 !important;"
+        style={{ "z-index": "10000 !important", "pointer-events": showControls() ? "auto" : "none" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div class="reader-nav-content">
@@ -195,8 +195,8 @@ function Reader() {
               class="reader-icon-btn"
               disabled={(() => {
                 const idx = chapters().findIndex(c => {
-                  const normC = c.id.split('?')[0].toLowerCase();
-                  const normP = params.url.split('?')[0].toLowerCase();
+                  const normC = (c.id || "").split('?')[0].toLowerCase();
+                  const normP = (params.url || "").split('?')[0].toLowerCase();
                   return normC === normP || normC.includes(normP) || normP.includes(normC);
                 });
                 return idx === -1 || idx === chapters().length - 1;
@@ -209,8 +209,8 @@ function Reader() {
               class="reader-icon-btn primary"
               disabled={(() => {
                 const idx = chapters().findIndex(c => {
-                  const normC = c.id.split('?')[0].toLowerCase();
-                  const normP = params.url.split('?')[0].toLowerCase();
+                  const normC = (c.id || "").split('?')[0].toLowerCase();
+                  const normP = (params.url || "").split('?')[0].toLowerCase();
                   return normC === normP || normC.includes(normP) || normP.includes(normC);
                 });
                 return idx === -1 || idx === 0;
@@ -222,7 +222,7 @@ function Reader() {
         </div>
       </div>
 
-      {/* 2. Loading State Utama (Hanya saat transisi chapter) */}
+      {/* 2. Loading State Utama */}
       <Show when={loading()}>
         <div class="reader-loading-overlay">
           <div class="spinner-container">
@@ -232,8 +232,8 @@ function Reader() {
         </div>
       </Show>
 
-      {/* 3. Area Baca (Klik di area ini untuk Sembunyi/Muncul Header) */}
-      <div class="reader-view-area" onClick={() => setShowControls(!showControls())}>
+      {/* 3. Area Baca */}
+      <div class="reader-view-area" onClick={() => setShowControls(!showControls())} style={{ "position": "relative", "z-index": "1" }}>
         <div class="reader-content">
           <div class="reader-header-spacer"></div>
           
@@ -241,22 +241,23 @@ function Reader() {
             {(src, index) => {
               const [loaded, setLoaded] = createSignal(false);
               return (
-                <div class="image-wrapper">
-                  {!loaded() && (
+                <div class="image-wrapper" style={{ "min-height": "400px", "background": "#000" }}>
+                  <Show when={!loaded()}>
                     <div class="image-loader">
                       <div class="spinner"></div>
-                      <span>Halaman {index() + 1} memuat...</span>
+                      <span>Hal {index() + 1} memuat...</span>
                     </div>
-                  )}
+                  </Show>
                   <img
                     src={getProxyUrl(src)}
                     alt={`Page ${index() + 1}`}
                     class="reader-image"
                     onLoad={() => setLoaded(true)}
-                    loading={index() < 3 ? "eager" : "lazy"}
                     style={{ 
                       display: loaded() ? 'block' : 'none',
-                      "min-height": loaded() ? "auto" : "400px" 
+                      width: "100%",
+                      height: "auto",
+                      "min-height": "100px"
                     }}
                     ref={(el) => {
                       const observer = new IntersectionObserver((entries) => {
@@ -274,15 +275,14 @@ function Reader() {
             }}
           </For>
 
-          {/* Tombol Next Chapter di akhir halaman */}
           <Show when={!loading() && images().length > 0}>
             <div class="reader-footer-actions">
                <button 
                  onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
                  class="next-ch-footer-btn"
                  disabled={chapters().findIndex(c => {
-                   const normC = c.id.split('?')[0].toLowerCase();
-                   const normP = params.url.split('?')[0].toLowerCase();
+                   const normC = (c.id || "").split('?')[0].toLowerCase();
+                   const normP = (params.url || "").split('?')[0].toLowerCase();
                    return normC === normP || normC.includes(normP) || normP.includes(normC);
                  }) === 0}
                >
