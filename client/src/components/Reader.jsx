@@ -187,6 +187,10 @@ function Reader() {
               )}
             </For>
           </select>
+          
+          <div style={{ "font-size": "0.75rem", "opacity": "0.5", "font-weight": "bold", "white-space": "nowrap", "padding": "0 8px", "font-family": "monospace" }}>
+            {currentPage()} / {images().length}
+          </div>
 
           <div class="reader-nav-icons">
             <button 
@@ -276,7 +280,6 @@ function Reader() {
                       observer.observe(el);
                     }}
                   />
-                  {loaded() && <div class="page-badge">Hal {index() + 1}</div>}
                 </div>
               );
             }}
