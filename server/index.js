@@ -218,6 +218,8 @@ app.get("/api/proxy", async (req, res) => {
   if (!url || url === "undefined")
     return res.status(400).send("Valid URL required");
 
+  console.log(`📡 [Proxy] Requesting: ${url.substring(0, 80)}...`);
+
   try {
     const origin = new URL(url).origin;
     let referer = origin;
@@ -245,13 +247,15 @@ app.get("/api/proxy", async (req, res) => {
     });
 
     const contentType = response.headers["content-type"] || "image/jpeg";
+    console.log(`✅ [Proxy] Success: ${contentType} | Size: ${response.data.length} bytes`);
+
     res.setHeader("Content-Type", contentType);
     res.setHeader("Cache-Control", "public, max-age=2592000");
     res.setHeader("Access-Control-Allow-Origin", "*");
     
     return res.end(response.data, "binary");
   } catch (error) {
-    console.error(`❌ Proxy Error: ${url}`, error.message);
+    console.error(`❌ [Proxy] Failed: ${url.substring(0, 60)} | Error: ${error.message}`);
     res.status(500).send("Proxy error");
   }
 });

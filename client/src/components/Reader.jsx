@@ -232,11 +232,17 @@ function Reader() {
         <div class="reader-content">
           <div class="reader-header-spacer"></div>
           
+          {/* Test Image: Mengetahui apakah rendering img di browser rusak atau proxy-nya */}
+          <div style="background: white; padding: 10px; color: black; text-align: center;">
+            TEST RENDERING (Logo Placeholder):<br/>
+            <img src="https://via.placeholder.com/150" style="display: block; margin: 0 auto; border: 5px solid lime;" />
+          </div>
+
           <For each={images()}>
             {(src, index) => {
               const [loaded, setLoaded] = createSignal(false);
               return (
-                <div class="image-wrapper" style={{ "min-height": "100px", "background": "crimson", "border": "1px solid yellow" }}>
+                <div class="image-wrapper" style={{ "min-height": "200px", "background": "crimson", "border": "2px solid yellow", "margin-bottom": "10px" }}>
                   <Show when={!loaded()}>
                     <div class="image-loader">
                       <div class="spinner"></div>
@@ -259,9 +265,11 @@ function Reader() {
                       "display": "block",
                       "width": "100%",
                       "height": "auto",
-                      "min-height": "200px",
+                      "min-height": "400px",
                       "object-fit": "contain",
-                      "border": "2px solid white"
+                      "border": "5px solid lime",
+                      "opacity": "1 !important",
+                      "visibility": "visible !important"
                     }}
                     ref={(el) => {
                       const observer = new IntersectionObserver((entries) => {
