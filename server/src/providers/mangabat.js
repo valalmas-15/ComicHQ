@@ -121,9 +121,9 @@ class Mangabat extends BaseProvider {
         headers: { 'Referer': 'https://www.mangabats.com/' }
       });
       const $ = cheerio.load(data);
-      return $('.container-chapter-reader img, .img-content img, #v_content img').map((i, el) => {
-        return $(el).attr('src') || $(el).attr('data-src');
-      }).get().filter(img => img && img.startsWith('http') && !img.includes('logo'));
+      return $('.container-chapter-reader img, .img-content img, #v_content img, .v-content img').map((i, el) => {
+        return $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-original') || $(el).attr('lazy-src');
+      }).get().filter(img => img && img.startsWith('http') && !img.includes('logo') && !img.includes('banner'));
     } catch (error) {
       console.error(`${this.name} Pages Error:`, error.message);
       return [];

@@ -212,7 +212,7 @@ app.get("/api/chapters", async (req, res) => {
   }
 });
 
-// 🖼️ Ultra-Fast Image Proxy
+// 🖼️ Zero-Processing Ultra-Stable Proxy
 app.get("/api/proxy", async (req, res) => {
   const { url } = req.query;
   if (!url || url === "undefined")
@@ -222,16 +222,14 @@ app.get("/api/proxy", async (req, res) => {
     const origin = new URL(url).origin;
     let referer = origin;
 
-    // Fast Referer Correction
-    if (url.includes("mangabat") || url.includes("manganelo") || url.includes("manganato") || url.includes("nhato")) {
-      referer = "https://www.mangabat.com/";
+    // Fixed Referers for known strict domains
+    if (url.includes("mncdn") || url.includes("manganato") || url.includes("mangabat") || url.includes("2xstorage")) {
+      referer = "https://chapmanganato.to/";
     } else if (url.includes("ikiru") || url.includes("itachi") || url.includes("02.ikiru")) {
       referer = "https://02.ikiru.wtf/";
-    } else if (url.includes("komiku")) {
-      referer = "https://komiku.com/";
     } else if (url.includes("westmanga")) {
       referer = "https://westmanga.org/";
-    } else if (url.includes("asurascans") || url.includes("asura.nacm") || url.includes("gg-asura")) {
+    } else if (url.includes("asurascans") || url.includes("asura.net") || url.includes("asuracomic")) {
       referer = "https://asuracomic.net/";
     }
 
@@ -240,24 +238,21 @@ app.get("/api/proxy", async (req, res) => {
       timeout: 15000,
       headers: {
         "Referer": referer,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-        "Cache-Control": "max-age=2592000"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Accept": "*/*"
       },
       maxRedirects: 5
     });
 
-    // Zero-Processing Transmission
-    res.set({
-      "Content-Type": response.headers["content-type"] || "image/jpeg",
-      "Cache-Control": "public, max-age=2592000",
-      "Access-Control-Allow-Origin": "*"
-    });
+    const contentType = response.headers["content-type"] || "image/jpeg";
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=2592000");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     
-    res.send(response.data);
+    return res.end(response.data, "binary");
   } catch (error) {
-    console.error(`❌ Proxy Fast-Path Failed [${url}]:`, error.message);
-    res.status(500).send("Failed to load image");
+    console.error(`❌ Proxy Error: ${url}`, error.message);
+    res.status(500).send("Proxy error");
   }
 });
 
