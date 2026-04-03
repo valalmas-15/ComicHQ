@@ -370,8 +370,8 @@ app.get("/api/updates", authenticateToken, (req, res) => {
 
 // --- SPA FALLBACK ---
 app.use(express.static(path.join(__dirname, "dist")));
-app.get("*", (req, res) => {
-  // Fix for path-to-regexp 6.x+ error with "*" wildcard
+app.get("(.*)", (req, res) => {
+  // Fix for path-to-regexp 6.x+ error with "*" wildcard, using (.*) instead
   const indexPath = path.join(__dirname, "dist", "index.html");
   if (require("fs").existsSync(indexPath)) {
     res.sendFile(indexPath);
