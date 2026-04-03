@@ -86,9 +86,9 @@ function Updates() {
                     onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
                   />
                   <span class="provider-tag">{manga.provider}</span>
-                  <Show when={manga.unread_count > 0}>
-                    <div class="unread-count-badge-mini">{manga.unread_count}</div>
-                  </Show>
+                  {/* 🆕 Badge NEW di Poster */}
+                  <div class="poster-new-badge">NEW</div>
+                  
                   <Show when={manga.type === "manhwa"}>
                     <div class="origin-flag-badge">🇰🇷</div>
                   </Show>
@@ -105,13 +105,10 @@ function Updates() {
                     <h3 class="update-manga-title">{manga.title}</h3>
                   </div>
                   
-                  <div class="latest-chapter-box" style={{ "margin-top": "4px" }}>
-                    <div style={{ "display": "flex", "align-items": "center", "gap": "6px" }}>
-                       <span style={{ "font-size": "0.7rem", "background": "rgba(var(--primary-rgb), 0.1)", "color": "var(--primary)", "padding": "2px 6px", "border-radius": "4px", "font-weight": "800" }}>NYARIS</span>
-                       <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "900", "font-size": "1rem", "margin": "0", "text-shadow": "0 0 10px rgba(var(--primary-rgb), 0.2)" }}>
-                        {manga.latest_chapter_title || `Tersedia!`}
-                      </p>
-                    </div>
+                  <div class="latest-chapter-info-row" style={{ "margin-top": "6px" }}>
+                    <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "900", "font-size": "1.1rem", "margin": "0" }}>
+                      {manga.latest_chapter_title || `Chapter Baru`}
+                    </p>
                   </div>
                   
                   <div class="history-meta" style={{ "margin-top": "auto" }}>

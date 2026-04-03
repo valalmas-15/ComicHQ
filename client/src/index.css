@@ -2245,16 +2245,17 @@ body:has(.reader-container) {
   z-index: 2;
 }
 
-.unread-count-badge-mini {
+.poster-new-badge {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-  background: var(--primary);
-  color: white;
-  font-size: 0.65rem;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  z-index: 2;
+  bottom: 6px;
+  right: 6px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  z-index: 10;
+  letter-spacing: 1px;
 }
