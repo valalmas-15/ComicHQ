@@ -36,7 +36,7 @@ const authRoutes = require("./src/routes/auth");
 const historyRouter = require("./src/routes/history");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "comichq_lite_key";
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SECRET_KEY || "comichq_lite_key";
 
 // Middleware Authenticate
 function authenticateToken(req, res, next) {
@@ -370,8 +370,8 @@ app.get("/api/updates", authenticateToken, (req, res) => {
 
 // --- SPA FALLBACK ---
 app.use(express.static(path.join(__dirname, "dist")));
-app.get("(.*)", (req, res) => {
-  // Fix for path-to-regexp 6.x+ error with "*" wildcard, using (.*) instead
+app.get("*", (req, res) => {
+  // Use "*" for standard catch-all in modern Express
   const indexPath = path.join(__dirname, "dist", "index.html");
   if (require("fs").existsSync(indexPath)) {
     res.sendFile(indexPath);
@@ -383,8 +383,15 @@ app.get("(.*)", (req, res) => {
   }
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("❌ Global Error:", err.stack);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is fully restored and running on port ${PORT}`);
+  console.log(`🚀 Server is listening at http://0.0.0.0:${PORT}`);
+  console.log(`📂 DB Path: ${DB_PATH}`);
 });
 
 module.exports = { db };

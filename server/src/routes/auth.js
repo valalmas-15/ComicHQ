@@ -1,7 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "comichq_lite_key";
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SECRET_KEY || "comichq_lite_key";
 
 module.exports = (db) => {
   const router = express.Router();

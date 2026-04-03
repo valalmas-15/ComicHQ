@@ -66,17 +66,32 @@ module.exports = (db) => {
     };
 
     if (!manga_id && source_id) {
-      db.run("INSERT INTO manga_library (title, source_id, provider, thumbnail_url, type) VALUES (?, ?, ?, ?, ?) ON CONFLICT (source_id) DO UPDATE SET added_at = added_at", 
-         [manga_title || "Unknown", source_id, provider || "Unknown", thumbnail_url || "", type || "manga"], function(err) {
-        db.get("SELECT id FROM manga_library WHERE source_id = ?", [source_id], (err, row) => {
-          if (row) saveHistory(row.id);
-          else res.status(500).json({ error: "Library creation failed" });
-        });
-      });
+      // Auto-add to library if manga_id is missing but we have source_id
+      const insertLibrary = `
+        INSERT INTO manga_library (title, source_id, provider, thumbnail_url, type) 
+        VALUES (?, ?, ?, ?, ?) 
+        ON CONFLICT (source_id) DO UPDATE SET added_at = added_at
+      `;
+      
+      db.run(insertLibrary, 
+         [manga_title || "Unknown", source_id, provider || "Unknown", thumbnail_url || "", type || "manga"], 
+         function(err) {
+            if (err) {
+              console.error("❌ Library auto-create failed:", err.message);
+              return res.status(500).json({ error: "Failed to sync manga to library" });
+            }
+            
+            // Re-fetch the ID to ensure we have it correctly
+            db.get("SELECT id FROM manga_library WHERE source_id = ?", [source_id], (err, row) => {
+              if (err || !row) return res.status(500).json({ error: "Library retrieval failed" });
+              saveHistory(row.id);
+            });
+         }
+      );
     } else if (manga_id) {
       saveHistory(manga_id);
     } else {
-      res.status(400).json({ error: "Missing identity" });
+      res.status(400).json({ error: "Missing identity (manga_id or source_id)" });
     }
   });
 
