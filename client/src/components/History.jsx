@@ -79,12 +79,13 @@ function History() {
                   
                   <p class="history-chapter">{item.chapter_title}</p>
                   
-                  <div class="history-meta">
-                    <div class="progress-indicator">
-                      <i class="fas fa-bookmark mr-2"></i>
-                      <span>Hal. {item.last_page}</span>
+                  <div class="history-stats-row">
+                    <div class="progress-badge">
+                      <i class="fas fa-bookmark"></i> Hal. {item.last_page}
                     </div>
-                    <span class="time-ago">{formatRelativeTime(item.updated_at)}</span>
+                    <span class="time-ago">
+                      <i class="far fa-clock"></i> {formatRelativeTime(item.updated_at)}
+                    </span>
                   </div>
                 </div>
               </A>
@@ -94,7 +95,7 @@ function History() {
                   href={`/read/${item.provider}/${encodeURIComponent(item.chapter_id)}?source=${encodeURIComponent(item.source_id)}&title=${encodeURIComponent(item.chapter_title)}&type=${item.type}`}
                   class="continue-reading-btn"
                 >
-                  <i class="fas fa-play mr-2"></i> Lanjut Baca
+                  <i class="fas fa-play" style={{ "margin-right": "10px" }}></i> Lanjut Baca
                 </A>
               </div>
             </div>

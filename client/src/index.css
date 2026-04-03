@@ -17,6 +17,11 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
+a {
+  text-decoration: none !important;
+  color: inherit;
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -1714,79 +1719,114 @@ body:has(.reader-container) {
 
 .history-card {
   display: flex;
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  height: 100px; /* SYNC with Updates */
+  text-decoration: none !important;
 }
 
 .history-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+.history-main-link {
+  display: flex;
+  flex: 1; /* Allow it to take available space */
+  text-decoration: none !important;
+  color: inherit;
+  overflow: hidden;
 }
 
 .history-poster {
-  width: 120px;
-  min-width: 120px;
+  width: 70px;
+  min-width: 70px;
   position: relative;
+  overflow: hidden;
 }
 
 .history-details {
   flex: 1;
-  padding: 1.25rem;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  position: relative;
+  gap: 2px;
 }
 
 .history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0px !important;
 }
 
 .history-header h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
   margin: 0;
-  color: white;
-}
-
-.provider-tag {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  text-decoration: none !important;
 }
 
 .history-chapter {
+  font-size: 0.85rem;
   color: var(--primary);
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-weight: 700;
+  margin-bottom: 2px !important;
 }
 
-.history-meta {
+.history-stats-row {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.progress-badge {
+  background: rgba(var(--primary-rgb), 0.15);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-ago {
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-action {
+  margin-left: auto;
+  align-self: center;
+  padding: 0 12px;
 }
 
 .continue-reading-btn {
-  display: inline-flex;
-  align-items: center;
-  background: var(--primary);
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), #4338ca);
   color: white;
-  padding: 8px 20px;
-  border-radius: 8px;
   font-weight: 700;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: all 0.2s;
+  font-size: 0.8rem;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.continue-reading-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
 
 .continue-reading-btn:hover {
