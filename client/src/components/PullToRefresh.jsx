@@ -12,27 +12,41 @@ export default function PullToRefresh(props) {
   const threshold = 100; // Meningkatkan batas minimum agar tidak tidak sengaja aktif
 
   const handleTouchStart = (e) => {
-    if (window.scrollY === 0) {
+    // Hanya pantau jika di paling atas
+    if (window.scrollY <= 0) {
       startY = e.touches[0].pageY;
-      setIsPulling(true);
     }
   };
 
   const handleTouchMove = (e) => {
-    if (!isPulling() || isRefreshing()) return;
+    if (isRefreshing()) return;
     
     const currentY = e.touches[0].pageY;
     const diff = currentY - startY;
 
-    if (diff > 0 && window.scrollY === 0) {
-      // Resistance effect
-      const distance = Math.pow(diff, 0.7);
-      setPullDistance(distance);
-      // Prevent default to disable native bounce on some browsers if needed
-      if (distance > 10) e.preventDefault();
+    // Hanya aktif jika tarik ke bawah (diff > 0) dan di paling atas
+    if (diff > 0 && window.scrollY <= 0) {
+      // Set pulling mode hanya jika sudah lewat bany sedikit (deadzone 10px)
+      if (!isPulling() && diff > 10) {
+        setIsPulling(true);
+      }
+
+      if (isPulling()) {
+        // Resistance effect for native feel
+        // Kita kurangi 10px deadzone dari diff sebelum hitung distance
+        const distance = Math.pow(Math.max(0, diff - 10), 0.75);
+        setPullDistance(distance);
+        
+        // Prevent scroll native hanya jika kita benar-benar sedang menarik komponen PTR
+        if (distance > 5) {
+          if (e.cancelable) e.preventDefault();
+        }
+      }
     } else {
-      setPullDistance(0);
-      setIsPulling(false);
+      if (isPulling()) {
+        setPullDistance(0);
+        setIsPulling(false);
+      }
     }
   };
 
