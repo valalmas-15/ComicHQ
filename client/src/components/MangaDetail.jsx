@@ -247,39 +247,50 @@ function MangaDetail() {
         </Show>
 
         <For each={chapters()}>
-          {(chapter) => (
-            <div
-              class={`chapter-item ${isRead(chapter.id) ? "read" : ""} ${selected().includes(chapter.id) ? "selected" : ""}`}
-              onClick={() =>
-                isSelecting() ? toggleSelection(chapter.id) : null
-              }
-              style={isSelecting() ? "cursor: pointer;" : ""}
-            >
-              <Show when={!isSelecting()}>
-                <A
-                  href={`/read/${params.provider}/${encodeURIComponent(chapter.id)}?source=${encodeURIComponent(params.url)}&title=${encodeURIComponent(chapter.title)}`}
-                  class="chapter-link-overlay"
-                />
-              </Show>
-              <div class="chapter-content">
-                <span class="chapter-title">{chapter.title}</span>
-                <span class="chapter-date">{chapter.updated_at}</span>
-              </div>{" "}
-              {/* End chapter-content */}
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <Show when={isRead(chapter.id)}>
-                  <span class="read-status" style="font-size: 0.8rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 8px; border-radius: 6px; font-weight: 600;">
-                    ✓ Hal {getProgress(chapter.id)?.last_page || 1}
-                  </span>
-                </Show>
-                <Show when={isSelecting()}>
-                  <div
-                    class={`selection-indicator ${selected().includes(chapter.id) ? "checked" : ""}`}
+          {(chapter) => {
+            const isFinished = readChapterIds().includes(chapter.id);
+            const isLast = lastRead()?.chapter_id === chapter.id;
+
+            return (
+              <div
+                class={`chapter-item ${isFinished ? "read" : ""} ${isLast ? "last-read-chapter" : ""} ${selected().includes(chapter.id) ? "selected" : ""}`}
+                onClick={() =>
+                  isSelecting() ? toggleSelection(chapter.id) : null
+                }
+                style={isSelecting() ? "cursor: pointer;" : ""}
+              >
+                <Show when={!isSelecting()}>
+                  <A
+                    href={`/read/${params.provider}/${encodeURIComponent(chapter.id)}?source=${encodeURIComponent(params.url)}&title=${encodeURIComponent(chapter.title)}`}
+                    class="chapter-link-overlay"
                   />
                 </Show>
+                
+                <div class="chapter-content">
+                  <span class="chapter-title">{chapter.title}</span>
+                  <span class="chapter-date">{chapter.updated_at}</span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem; z-index: 2;">
+                  <Show when={isLast}>
+                    <span class="read-status status-last">
+                      <i>📖</i> Hal {lastRead().last_page}
+                    </span>
+                  </Show>
+                  <Show when={isFinished && !isLast}>
+                    <span class="read-status status-read">
+                      <i>✓</i> Selesai
+                    </span>
+                  </Show>
+                  <Show when={isSelecting()}>
+                    <div
+                      class={`selection-indicator ${selected().includes(chapter.id) ? "checked" : ""}`}
+                    />
+                  </Show>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          }}
         </For>
       </div>
 

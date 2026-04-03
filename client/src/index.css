@@ -427,39 +427,86 @@ input:focus {
 .read-btn { background: var(--primary); color: white; margin-right: 0.5rem; }
 .unread-btn { background: #475569; color: white; }
 
+.chapter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
 .chapter-item:hover {
-  background: #1e293b;
+  background: rgba(30, 41, 59, 0.7);
   border-color: var(--primary);
-  transform: scale(1.01);
+  transform: translateX(4px);
 }
 
 .chapter-item.read {
-  opacity: 0.6;
-  background: #0f172a80;
-  border-color: rgba(51, 65, 85, 0.5);
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.02);
+  opacity: 0.5; /* Dimmed state */
 }
 
-.chapter-content {
-  display: flex;
-  flex-direction: column;
+.last-read-chapter {
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  opacity: 1 !important; /* Keep last read visible */
+  transform: scale(1.02);
+}
+
+.chapter-item.selected {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
 }
 
 .read-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.75rem;
-  color: var(--primary);
-  font-weight: 700;
-  background: rgba(99, 102, 241, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-unread {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+}
+
+.status-read {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.status-last {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
 .chapter-title {
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #f8fafc;
 }
 
 .chapter-date {
   font-size: 0.8rem;
   color: var(--text-muted);
+  margin-top: 2px;
 }
 
 /* 📖 Reader Layout */
