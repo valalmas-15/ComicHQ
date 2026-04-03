@@ -50,7 +50,21 @@ router.get("/:mangaId", async (req, res) => {
       "SELECT chapter_id, last_page FROM history WHERE user_id = ? AND manga_id = ?",
       [req.user.id, req.params.mangaId]
     );
-    res.json(history);
+    res.json(history.map(h => h.chapter_id)); // Return array of IDs for compatibility
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Compatibility route for checking single chapter
+router.get("/check/:mangaId/:chapterId", async (req, res) => {
+  try {
+    const db = await openDb();
+    const history = await db.get(
+      "SELECT * FROM history WHERE user_id = ? AND manga_id = ? AND chapter_id = ?",
+      [req.user.id, req.params.mangaId, req.params.chapterId]
+    );
+    res.json({ isRead: !!history, last_page: history ? history.last_page : 0 });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
