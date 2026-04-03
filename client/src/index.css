@@ -620,7 +620,22 @@ input:focus {
   appearance: none;
 }
 
-/* 📖 Brutal Edge-to-Edge Reader Layout */
+/* 📖 Brutal Edge-to-Edge Reader Layout (Scoped ONLY to Reader) */
+body:has(.reader-container) {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #000;
+}
+
+body:has(.reader-container) #root, 
+body:has(.reader-container) .app-container {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  width: 100vw !important;
+}
+
 .reader-container {
   width: 100vw !important;
   max-width: 100vw !important;
@@ -628,7 +643,10 @@ input:focus {
   padding: 0 !important;
   background: #000 !important;
   min-height: 100vh;
-  overflow-x: hidden !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
 }
 
 .reader-content {
@@ -636,38 +654,17 @@ input:focus {
   max-width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
-  display: block;
 }
 
 .reader-image {
   width: 100% !important;
-  min-width: 100% !important;
   max-width: 100% !important;
   display: block !important;
   height: auto !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
-  image-rendering: auto;
-}
-
-/* Kill generic paddings that might be inherited */
-#root, .app-container {
-  padding: 0 !important;
-  margin: 0 !important;
-  max-width: 100% !important;
-}
-
-/* Global Reset to kill all side-bars */
-html, body, #root {
-  width: 100vw !important;
-  overflow-x: hidden !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-body:has(.reader-container) {
-  background: #000;
+  image-rendering: -webkit-optimize-contrast; /* Sharper images */
 }
 
 .reader-nav-content {
