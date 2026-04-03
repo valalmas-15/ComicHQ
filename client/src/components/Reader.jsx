@@ -243,14 +243,28 @@ function Reader() {
             <button 
               onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
               class="reader-icon-btn"
-              disabled={chapters().findIndex(c => c.id === params.url) === 0}
+              disabled={(() => {
+                const idx = chapters().findIndex(c => {
+                  const normC = c.id.split('?')[0].toLowerCase();
+                  const normP = params.url.split('?')[0].toLowerCase();
+                  return normC === normP || normC.includes(normP) || normP.includes(normC);
+                });
+                return idx === -1 || idx === chapters().length - 1;
+              })()}
             >
               <i>«</i>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
               class="reader-icon-btn primary"
-              disabled={chapters().findIndex(c => c.id === params.url) === chapters().length - 1}
+              disabled={(() => {
+                const idx = chapters().findIndex(c => {
+                  const normC = c.id.split('?')[0].toLowerCase();
+                  const normP = params.url.split('?')[0].toLowerCase();
+                  return normC === normP || normC.includes(normP) || normP.includes(normC);
+                });
+                return idx === -1 || idx === 0;
+              })()}
             >
               <i>»</i>
             </button>
