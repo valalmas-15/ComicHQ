@@ -101,6 +101,14 @@ function Reader() {
 
   // Scroll detection for auto-hiding controls
   let lastScrollY = 0;
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowLeft") {
+      navigateChapter("prev");
+    } else if (e.key === "ArrowRight") {
+      navigateChapter("next");
+    }
+  };
+
   const handleScroll = () => {
     const currentScrollY = window.scrollY;
     
