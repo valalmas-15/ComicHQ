@@ -30,42 +30,52 @@ class AsuraScans extends GenericWPProvider {
         timeout: 15000
       });
 
-      // Strategy 1: Standard Search
       const $ = cheerio.load(html);
-      let images = $(".main-reading-area img, #readerarea img, .w-full.flex-col img, .flex.flex-col.items-center img")
-        .map((i, el) => $(el).attr("src") || $(el).attr("data-src") || $(el).attr("data-lazy-src"))
-        .get()
-        .filter(img => img && img.startsWith("http") && !img.includes('logo') && !img.includes('banner'));
+      let images = [];
 
-      // Strategy 2: Robust Regex for Streamed/Encoded URLs (common on Remix-style Asura pages)
-      if (images.length < 5) {
-        console.log(`🎨 [Asura Scans] DOM Extraction found only ${images.length} images. Trying cleaned Regex...`);
-        
-        const cleanHtml = html.replace(/&quot;/g, '"');
-        
-        const regexes = [
-          /https:\/\/cdn\.asurascans\.com\/asura-images\/chapters\/[^"&\s(]+\.webp/g,
-          /https:\/\/asura\.nacmanga\.com\/wp-content\/uploads\/[^"&\s(]+\.(?:webp|jpg|png|jpeg)/g
-        ];
-
-        let regexResults = [];
-        for (const re of regexes) {
-           const matches = cleanHtml.match(re);
-           if (matches && matches.length > 3) {
-              regexResults = [...regexResults, ...matches];
-           }
+      // Strategy 1: Extract from ts_reader JSON block (most reliable for order)
+      const scripts = $("script").toArray();
+      for (const script of scripts) {
+        const content = $(script).html();
+        if (content && (content.includes("ts_reader") || content.includes("ts_reader.params.images"))) {
+          try {
+            const match = content.match(/ts_reader\.params\.images\s*=\s*(\[[^\]]+\])/);
+            if (match) {
+              const parsed = JSON.parse(match[1]);
+              if (Array.isArray(parsed) && parsed.length > 5) {
+                return parsed.filter(u => u && u.startsWith('http')).map(u => u.trim());
+              }
+            }
+          } catch (e) {
+            console.error("JSON parse failed for ts_reader");
+          }
         }
+      }
 
-        const filtered = [...new Set(regexResults)]
-           .filter(img => 
+      // Strategy 2: Traditional selectors from the reader area
+      // We prioritize data-src/data-lazy-src over src for lazyload themes
+      $("#readerarea img, .readerarea img, #chimg-ctn img").each((i, el) => {
+        const src = $(el).attr("data-src") || $(el).attr("data-lazy-src") || $(el).attr("src");
+        if (src && !src.includes("logo") && !src.includes("banner") && !src.includes("cover")) {
+          const cleanSrc = src.trim();
+          if (cleanSrc.startsWith('http') && !images.includes(cleanSrc)) {
+            images.push(cleanSrc);
+          }
+        }
+      });
+
+      // Strategy 3: Regex fallback (only if few/no images found)
+      if (images.length < 5) {
+        const regexResults = html.match(
+          /https:\/\/(?:cdn\.asurascans\.com\/asura-images|asura\.nacmanga\.com\/wp-content\/uploads|asuratoon\.com\/wp-content\/uploads)\/chapters\/[^"&\s(]+\.(?:webp|jpg|png|jpeg)/g
+        );
+        if (regexResults) {
+          const unique = [...new Set(regexResults)];
+          images = unique.filter(img => 
              !img.includes('logo') && 
-             !img.includes('banner') && 
+             !img.includes('banner') &&
              !img.includes('cover')
-           ); // REMOVED SORT - matches stay in document order
-
-        if (filtered.length > 0) {
-           console.log(`✅ [Asura Scans] Regex extract found ${filtered.length} images.`);
-           return filtered;
+          );
         }
       }
 

@@ -122,7 +122,7 @@ function MangaDetail() {
       if (response.ok) {
         // Refresh read list
         const [readRes, lastRes] = await Promise.all([
-          apiFetch(`/api/read-chapters/${mangaId()}`),
+          apiFetch(`/api/history/${mangaId()}`),
           apiFetch(`/api/history/last/${mangaId()}`)
         ]);
         const readData = await readRes.json();
@@ -130,6 +130,9 @@ function MangaDetail() {
         
         setReadChapterIds(readData);
         setLastRead(lastData);
+
+        // Tell Library to refresh counts
+        window.dispatchEvent(new CustomEvent("refresh-requested"));
 
         setSelected([]);
         setIsSelecting(false);
