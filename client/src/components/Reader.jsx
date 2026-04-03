@@ -225,8 +225,10 @@ function Reader() {
       {/* 2. Loading State Utama (Hanya saat transisi chapter) */}
       <Show when={loading()}>
         <div class="reader-loading-overlay">
-          <div class="spinner large"></div>
-          <p>Mempersiapkan Chapter...</p>
+          <div class="spinner-container">
+            <div class="spinner large"></div>
+            <p>Mempersiapkan Chapter...</p>
+          </div>
         </div>
       </Show>
 

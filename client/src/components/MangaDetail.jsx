@@ -215,7 +215,10 @@ function MangaDetail() {
       </header>
 
       <Show when={loading()}>
-        <div class="loading-spinner text-center">Mencari chapter...</div>
+        <div class="spinner-container" style="padding: 3rem 0;">
+          <div class="spinner"></div>
+          <p>Mencari chapter...</p>
+        </div>
       </Show>
 
       <div class="chapter-list">
