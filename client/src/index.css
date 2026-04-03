@@ -480,12 +480,12 @@ input:focus {
   right: 0;
   background: rgba(13, 17, 23, 0.95);
   backdrop-filter: blur(12px);
-  height: auto;
-  min-height: 70px;
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
-  align-items: center;
-  padding: calc(env(safe-area-inset-top, 24px) + 20px) 1rem 1rem 1rem;
-  min-height: 80px;
+  align-items: flex-end; /* Dorong konten ke bawah jauh dari notch */
+  padding: 0 1rem 12px 1rem;
+  padding-top: calc(env(safe-area-inset-top, 44px) + 20px);
+  min-height: 110px;
   z-index: 5001;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
@@ -619,7 +619,7 @@ input:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 60px;
+  padding-top: 110px;
 }
 
 .reader-image-container {
