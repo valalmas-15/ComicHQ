@@ -106,10 +106,12 @@ function Updates() {
                   </div>
                   
                   <div class="latest-chapter-box" style={{ "margin-top": "4px" }}>
-                    <span class="update-label" style={{ "font-size": "0.75rem", "color": "var(--text-muted)" }}>Rilis Terbaru:</span>
-                    <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "bold", "font-size": "0.9rem", "margin": "0" }}>
-                      {manga.latest_chapter_title || `New Update Available!`}
-                    </p>
+                    <div style={{ "display": "flex", "align-items": "center", "gap": "6px" }}>
+                       <span style={{ "font-size": "0.7rem", "background": "rgba(var(--primary-rgb), 0.1)", "color": "var(--primary)", "padding": "2px 6px", "border-radius": "4px", "font-weight": "800" }}>NYARIS</span>
+                       <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "900", "font-size": "1rem", "margin": "0", "text-shadow": "0 0 10px rgba(var(--primary-rgb), 0.2)" }}>
+                        {manga.latest_chapter_title || `Tersedia!`}
+                      </p>
+                    </div>
                   </div>
                   
                   <div class="history-meta" style={{ "margin-top": "auto" }}>
