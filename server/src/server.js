@@ -32,7 +32,13 @@ app.use("/api/auth", authRouter);
 app.use("/api/library", authenticateToken, libraryRouter);
 app.use("/api/search", authenticateToken, searchRouter);
 app.use("/api/chapters", authenticateToken, chaptersRouter);
-app.use("/api/history", authenticateToken, historyRouter);
+
+console.log("⚙️  Mounting history router at /api/history...");
+app.use("/api/history", authenticateToken, (req, res, next) => {
+  console.log(`📡 [Incoming Request] ${req.method} ${req.originalUrl}`);
+  next();
+}, historyRouter);
+
 app.use("/api/proxy", proxyRouter);
 app.use("/api/sources", sourcesRouter);
 app.use("/api/manga", mangaRouter);

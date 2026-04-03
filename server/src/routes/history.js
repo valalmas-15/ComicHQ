@@ -13,6 +13,7 @@ async function openDb() {
 
 // 1. Get overall history (user-specific) - Matches GET /api/history
 router.get("/", async (req, res) => {
+  console.log(`📖 [History API] Fetching overall history for user: ${req.user.id}`);
   try {
     const db = await openDb();
     const history = await db.all(`
@@ -30,6 +31,7 @@ router.get("/", async (req, res) => {
 
 // 2. Get most recently read chapter (user-specific) - Matches GET /api/history/last/35
 router.get("/last/:mangaId", async (req, res) => {
+  console.log(`📡 [History API] Fetching last read for manga ID: ${req.params.mangaId} (User: ${req.user.id})`);
   try {
     const db = await openDb();
     const lastRead = await db.get(
