@@ -99,13 +99,32 @@ function Reader() {
     }, 1500);
   };
 
-  // Keyboard navigation
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowLeft") navigateChapter("prev");
-    if (e.key === "ArrowRight") navigateChapter("next");
+  // Scroll detection for auto-hiding controls
+  let lastScrollY = 0;
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+    
+    // Hide controls when scrolling down, show when scrolling up
+    if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      if (showControls()) setShowControls(false);
+    } else if (currentScrollY < lastScrollY) {
+      if (!showControls()) setShowControls(true);
+    }
+    
+    lastScrollY = currentScrollY;
   };
-  onMount(() => window.addEventListener("keydown", handleKeyDown));
-  onCleanup(() => window.removeEventListener("keydown", handleKeyDown));
+
+  onMount(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Show controls initially
+    setShowControls(true);
+  });
+  
+  onCleanup(() => {
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("scroll", handleScroll);
+  });
 
   const navigateChapter = (dir) => {
     const currentIndex = chapters().findIndex(c => c.id === params.url);
@@ -149,6 +168,7 @@ function Reader() {
               <img 
                 src={getProxyUrl(src)} 
                 alt={`Halaman ${index() + 1}`}
+                loading="lazy"
                 ref={(el) => {
                   const observer = new IntersectionObserver((entries) => {
                     if (entries[0].isIntersecting) {
@@ -158,10 +178,29 @@ function Reader() {
                   }, { threshold: 0.1 });
                   observer.observe(el);
                 }}
+                onError={(e) => {
+                  e.target.title = "Gagal memuat gambar. Klik untuk coba lagi.";
+                  e.target.style.cursor = "pointer";
+                  e.target.onclick = () => {
+                    const currentSrc = e.target.src;
+                    const cleanSrc = currentSrc.split('&retry=')[0];
+                    e.target.src = cleanSrc + (cleanSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+                  };
+                }}
               />
             </div>
           )}
         </For>
+        
+        {/* End of Chapter Action */}
+        <Show when={!loading() && images().length > 0}>
+          <div class="reader-footer-actions">
+             <button onClick={() => navigateChapter("next")} class="next-ch-footer-btn">
+                <span>Next Chapter</span>
+                <i>→</i>
+             </button>
+          </div>
+        </Show>
       </div>
 
       {/* Reader Controls */}
@@ -173,9 +212,22 @@ function Reader() {
             <span class="page-count">{currentPage()} / {images().length}</span>
           </div>
         </div>
+
         <div class="controls-bottom">
-          <button onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.url)+1]} class="control-btn">Prev</button>
-          <button onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.url)-1]} class="control-btn">Next</button>
+          <button 
+             onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
+             disabled={chapters().findIndex(c => c.id === params.url) >= chapters().length - 1} 
+             class="control-btn"
+          >
+             Prev Chapter
+          </button>
+          <button 
+             onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
+             disabled={chapters().findIndex(c => c.id === params.url) <= 0} 
+             class="control-btn"
+          >
+             Next Chapter
+          </button>
         </div>
       </div>
     </div>
