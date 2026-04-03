@@ -37,7 +37,7 @@ function MangaDetail() {
       
       const provider = params.provider;
 
-      // Fetch fresh data in background or foreground if no cache
+      // 1. Fetch library and chapters first to get manga ID
       const [libRes, chaptersRes] = await Promise.all([
         apiFetch(`/api/library`),
         apiFetch(`/api/chapters?url=${encodeURIComponent(url)}&provider=${provider}`)
@@ -45,23 +45,16 @@ function MangaDetail() {
 
       const library = await libRes.json();
       const chaptersData = await chaptersRes.json();
-      
       let mangaData = library.find((m) => m.source_id === url);
       
-      // NEW: If not in library, try to find in general manga table (for history/progress)
       if (!mangaData) {
         try {
           const mRes = await apiFetch(`/api/manga/by-source?url=${encodeURIComponent(url)}`);
-          if (mRes.ok) {
-            const mData = await mRes.json();
-            if (mData) mangaData = mData;
-          }
+          if (mRes.ok) mangaData = await mRes.json();
         } catch(e) { console.error("Manga lookup failed", e); }
       }
 
-      setManga(mangaData);
-      setChapters(chaptersData);
-
+      // 2. If we found the manga, fetch all reading status in parallel with nothing else
       let freshReadIds = [];
       let freshLastRead = null;
 
@@ -73,11 +66,15 @@ function MangaDetail() {
         ]);
         freshReadIds = await readRes.json();
         freshLastRead = await lastRes.json();
-        setReadChapterIds(freshReadIds);
-        setLastRead(freshLastRead);
       }
 
-      // Update Cache
+      // 3. SET ALL DATA AT ONCE to ensure atomic re-render
+      setManga(mangaData);
+      setReadChapterIds(freshReadIds);
+      setLastRead(freshLastRead);
+      setChapters(chaptersData);
+
+      // 4. Update Cache
       mangaCache.set(cacheKey, {
         chapters: chaptersData,
         manga: mangaData,
@@ -86,7 +83,7 @@ function MangaDetail() {
         lastRead: freshLastRead
       });
     } catch (err) {
-      console.error(err);
+      console.error("Fetch Details Error:", err);
     } finally {
       setLoading(false);
     }
@@ -249,23 +246,22 @@ function MangaDetail() {
         <For each={chapters()}>
           {(chapter) => {
             // Normalize IDs to handle case-sensitivity and mirror differences
-            const normalizeId = (id) => {
+            const normalizeId = (val) => {
+              const id = typeof val === 'object' && val !== null ? (val.chapter_id || val.id) : val;
               if (!id) return "";
               try {
-                // Remove everything except the last part of the path (the slug)
                 const clean = id.toString().toLowerCase().trim().split('?')[0]; 
                 const parts = clean.split('/').filter(Boolean);
                 return parts[parts.length - 1] || clean;
-              } catch(e) { return id.toString().toLowerCase().trim(); }
+              } catch(e) { return String(id).toLowerCase().trim(); }
             };
 
             const chSlug = normalizeId(chapter.id);
-            // Flexible matching: check for exact match OR if one slug contains another
-            const isFinished = readChapterIds().some(id => {
-              const dbSlug = normalizeId(id);
+            const isFinished = readChapterIds().some(h => {
+              const dbSlug = normalizeId(h);
               return dbSlug === chSlug || (dbSlug.length > 3 && chSlug.includes(dbSlug)) || (chSlug.length > 3 && dbSlug.includes(chSlug));
             });
-            const isLast = normalizeId(lastRead()?.chapter_id) === chSlug;
+            const isLast = normalizeId(lastRead()) === chSlug;
 
             return (
               <div

@@ -154,58 +154,8 @@ function Reader() {
   const getProxyUrl = (url) => `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;
 
   return (
-    <div class="reader-container" onClick={() => setShowControls(!showControls())}>
-      <Show when={loading()}>
-        <div class="reader-loading">
-          <div class="spinner"></div>
-          <p>Memuat Gambar...</p>
-        </div>
-      </Show>
-
-      <Show when={error()}>
-        <div class="reader-error">
-          <p>⚠️ {error()}</p>
-          <button onClick={fetchChapter} class="btn-primary mt-4">Coba Lagi</button>
-        </div>
-      </Show>
-
-      <div class="reader-content">
-        <div class="reader-header-spacer"></div>
-        <For each={images()}>
-          {(src, index) => (
-            <div class="image-wrapper">
-              <img 
-                src={getProxyUrl(src)} 
-                alt={`Halaman ${index() + 1}`}
-                loading="lazy"
-                ref={(el) => {
-                  const observer = new IntersectionObserver((entries) => {
-                    if (entries[0].isIntersecting) {
-                      setCurrentPage(index() + 1);
-                      updateHistory(index() + 1);
-                    }
-                  }, { threshold: 0.1 });
-                  observer.observe(el);
-                }}
-                onError={(e) => {
-                  e.target.title = "Gagal memuat gambar. Klik untuk coba lagi.";
-                  e.target.style.cursor = "pointer";
-                  e.target.onclick = () => {
-                    const currentSrc = e.target.src;
-                    const cleanSrc = currentSrc.split('&retry=')[0];
-                    e.target.src = cleanSrc + (cleanSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
-                  };
-                }}
-              />
-            </div>
-          )}
-        </For>
-        
-        {/* End of Chapter Action */}
-        <Show when={!loading() && images().length > 0}>
-          <div class="reader-footer-actions">
-             <button onClick={() => navigateChapter("next")} class="next-ch-footer-btn">
-      {/* Consolidated Top Navigation (Matches Global Header Size) */}
+    <div class="reader-container">
+      {/* 1. Header Navigasi (Pixel-Perfect Global Style) */}
       <div 
         class={`reader-controls top ${showControls() ? "visible" : ""}`} 
         style="z-index: 4000 !important;"
@@ -272,9 +222,19 @@ function Reader() {
         </div>
       </div>
 
+      {/* 2. Loading State Utama (Hanya saat transisi chapter) */}
+      <Show when={loading()}>
+        <div class="reader-loading-overlay">
+          <div class="spinner large"></div>
+          <p>Mempersiapkan Chapter...</p>
+        </div>
+      </Show>
+
+      {/* 3. Area Baca (Klik di area ini untuk Sembunyi/Muncul Header) */}
       <div class="reader-view-area" onClick={() => setShowControls(!showControls())}>
         <div class="reader-content">
           <div class="reader-header-spacer"></div>
+          
           <For each={images()}>
             {(src, index) => {
               const [loaded, setLoaded] = createSignal(false);
@@ -283,7 +243,7 @@ function Reader() {
                   {!loaded() && (
                     <div class="image-loader">
                       <div class="spinner"></div>
-                      <span>Halaman {index() + 1} sedang dimuat...</span>
+                      <span>Halaman {index() + 1} memuat...</span>
                     </div>
                   )}
                   <img
@@ -292,7 +252,10 @@ function Reader() {
                     class="reader-image"
                     onLoad={() => setLoaded(true)}
                     loading={index() < 3 ? "eager" : "lazy"}
-                    style={{ display: loaded() ? 'block' : 'none' }}
+                    style={{ 
+                      display: loaded() ? 'block' : 'none',
+                      "min-height": loaded() ? "auto" : "400px" 
+                    }}
                     ref={(el) => {
                       const observer = new IntersectionObserver((entries) => {
                         if (entries[0].isIntersecting) {
@@ -302,27 +265,26 @@ function Reader() {
                       }, { threshold: 0.1 });
                       observer.observe(el);
                     }}
-                    onError={(e) => {
-                      e.target.title = "Gagal memuat gambar. Klik untuk coba lagi.";
-                      e.target.style.cursor = "pointer";
-                      e.target.onclick = () => {
-                        const currentSrc = e.target.src;
-                        const cleanSrc = currentSrc.split('&retry=')[0];
-                        e.target.src = cleanSrc + (cleanSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
-                      };
-                    }}
                   />
                   {loaded() && <div class="page-badge">Hal {index() + 1}</div>}
                 </div>
               );
             }}
           </For>
-          
-          {/* End of Chapter Action */}
+
+          {/* Tombol Next Chapter di akhir halaman */}
           <Show when={!loading() && images().length > 0}>
             <div class="reader-footer-actions">
-               <button onClick={() => navigateChapter("next")} class="next-ch-footer-btn">
-                  <span>Next Chapter</span>
+               <button 
+                 onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
+                 class="next-ch-footer-btn"
+                 disabled={chapters().findIndex(c => {
+                   const normC = c.id.split('?')[0].toLowerCase();
+                   const normP = params.url.split('?')[0].toLowerCase();
+                   return normC === normP || normC.includes(normP) || normP.includes(normC);
+                 }) === 0}
+               >
+                  <span>Lanjut ke Chapter Berikutnya</span>
                   <i>→</i>
                </button>
             </div>
