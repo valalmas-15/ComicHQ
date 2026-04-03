@@ -219,46 +219,51 @@ app.get("/api/proxy", async (req, res) => {
     return res.status(400).send("Valid URL required");
 
   try {
-    let origin = new URL(url).origin;
+    const origin = new URL(url).origin;
     let referer = origin;
 
-    if (
-      url.includes("mangabat") ||
-      url.includes("manganelo") ||
-      url.includes("manganato") ||
-      url.includes("nhato") ||
-      url.includes("2xstorage") ||
-      url.includes("mncdn")
-    ) {
-      referer = "https://www.mangabats.com/";
-    } else if (url.includes("ikiru") || url.includes("itachi")) {
+    // Enhanced Referer Logic for sensitive providers
+    if (url.includes("mangabat") || url.includes("manganelo") || url.includes("manganato") || url.includes("nhato")) {
+      referer = "https://www.mangabat.com/";
+    } else if (url.includes("ikiru") || url.includes("itachi") || url.includes("02.ikiru")) {
       referer = "https://02.ikiru.wtf/";
     } else if (url.includes("komiku")) {
-      referer = "https://komiku.org/";
+      referer = "https://komiku.com/";
     } else if (url.includes("westmanga")) {
-      referer = "https://westmanga.tv/";
+      referer = "https://westmanga.org/";
+    } else if (url.includes("asurascans") || url.includes("asura.nacm") || url.includes("gg-asura")) {
+      referer = "https://asuracomic.net/";
     }
 
     const response = await axios.get(url, {
       responseType: "arraybuffer",
-      timeout: 10000,
+      timeout: 15000,
       headers: {
-        Referer: referer,
-        "User-Agent": "Mozilla/5.0",
-        Cookie: process.env.GLOBAL_COOKIE || "",
+        "Referer": referer,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        "Cache-Control": "max-age=2592000"
       },
+      maxRedirects: 5
     });
 
+    res.set("Cache-Control", "public, max-age=2592000"); // 30 days cache
+
     try {
-      const optimizedImage = await sharp(response.data).webp({ quality: 75 }).toBuffer();
-      res.set("Content-Type", "image/webp");
-      res.send(optimizedImage);
+      if (response.data.length > 0) {
+        const optimizedImage = await sharp(response.data).webp({ quality: 80 }).toBuffer();
+        res.set("Content-Type", "image/webp");
+        return res.send(optimizedImage);
+      }
     } catch (e) {
-      res.set("Content-Type", response.headers["content-type"] || "image/jpeg");
-      res.send(response.data);
+      console.warn("Sharp optimization failed, sending raw data");
     }
+
+    res.set("Content-Type", response.headers["content-type"] || "image/jpeg");
+    res.send(response.data);
   } catch (error) {
-    res.status(500).send("Proxy failed");
+    console.error(`❌ Proxy Error [${url}]:`, error.message);
+    res.status(500).send("Proxy failed to load image");
   }
 });
 

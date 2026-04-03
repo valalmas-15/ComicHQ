@@ -241,7 +241,7 @@ function Reader() {
             {(src, index) => {
               const [loaded, setLoaded] = createSignal(false);
               return (
-                <div class="image-wrapper" style={{ "min-height": "400px", "background": "#000" }}>
+                <div class="image-wrapper" style={{ "min-height": "400px", "background": "#000", "position": "relative" }}>
                   <Show when={!loaded()}>
                     <div class="image-loader">
                       <div class="spinner"></div>
@@ -253,11 +253,22 @@ function Reader() {
                     alt={`Page ${index() + 1}`}
                     class="reader-image"
                     onLoad={() => setLoaded(true)}
+                    onError={(e) => {
+                      console.error(`Image failed: ${src}`);
+                      // Auto-retry once with cache-buster if failed
+                      const currentSrc = e.target.src;
+                      if (!currentSrc.includes('retry=')) {
+                        e.target.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+                      }
+                    }}
                     style={{ 
-                      display: loaded() ? 'block' : 'none',
-                      width: "100%",
-                      height: "auto",
-                      "min-height": "100px"
+                      "display": "block",
+                      "width": "100%",
+                      "height": "auto",
+                      "min-height": "100px",
+                      "object-fit": "contain",
+                      "position": "relative",
+                      "z-index": "5"
                     }}
                     ref={(el) => {
                       const observer = new IntersectionObserver((entries) => {
