@@ -193,7 +193,8 @@ app.get("/api/chapters", async (req, res) => {
   if (!url || !provider)
     return res.status(400).json({ error: "URL and provider required" });
 
-  const p = providers[provider];
+  const pName = Object.keys(providers).find(k => k.toLowerCase() === String(provider).toLowerCase());
+  const p = providers[pName];
   if (!p) return res.status(404).json({ error: "Provider not found" });
 
   try {
@@ -267,7 +268,8 @@ app.get("/api/pages", async (req, res) => {
   if (!url || !provider)
     return res.status(400).json({ error: "URL and provider required" });
 
-  const p = providers[provider];
+  const pName = Object.keys(providers).find(k => k.toLowerCase() === String(provider).toLowerCase());
+  const p = providers[pName];
   if (!p) return res.status(404).json({ error: "Provider not found" });
 
   try {

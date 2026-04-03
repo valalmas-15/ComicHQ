@@ -16,51 +16,52 @@ function Reader() {
   const [showControls, setShowControls] = createSignal(false);
 
   createEffect(() => {
-    const chapterId = params.chapterId;
+    const chapterUrl = params.url;
     const provider = params.provider;
-    if (chapterId && chapterId !== "undefined" && provider) {
+    if (chapterUrl && chapterUrl !== "undefined" && provider) {
       fetchChapter();
     }
   });
 
   const fetchChapter = async () => {
-    const chapterId = params.chapterId;
-    if (!chapterId || chapterId === "undefined") return;
+    const chapterUrl = params.url;
+    if (!chapterUrl || chapterUrl === "undefined") return;
     
     setLoading(true);
     setError(null);
     try {
       const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : null;
-      let url = `/api/chapters/pages/${params.provider}/${encodeURIComponent(chapterId)}`;
-      if (sourceUrl) url += `?source=${encodeURIComponent(sourceUrl)}`;
-
-      const response = await apiFetch(url);
+      const chUrl = decodeURIComponent(chapterUrl);
+      
+      // Fixed: Server uses /api/pages?url=...&provider=...
+      const response = await apiFetch(`/api/pages?url=${encodeURIComponent(chUrl)}&provider=${params.provider}`);
       if (response.status === 404) throw new Error("Halaman tidak ditemukan (404)");
       
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      setImages(data.pages || []);
+      
+      // Fixed: Server returns array directly
+      setImages(Array.isArray(data) ? data : []);
       
       // Also fetch manga ID and chapter list for navigation
       if (sourceUrl) {
          const libRes = await apiFetch(`/api/library`);
          const lib = await libRes.json();
          const manga = lib.find(m => m.source_id === sourceUrl);
+         
          if (manga) {
             setMangaId(manga.id);
-            const chaptersRes = await apiFetch(`/api/chapters/${params.provider}/${encodeURIComponent(sourceUrl)}`);
+            // Fixed: Server uses /api/chapters?url=...&provider=...
+            const chaptersRes = await apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`);
             const chaptersData = await chaptersRes.json();
             setChapters(chaptersData);
          } else {
-            // Fallback: check general manga table
-            const mRes = await apiFetch(`/api/manga/by-source?url=${encodeURIComponent(sourceUrl)}`);
-            const mData = await mRes.json();
-            if (mData) {
-               setMangaId(mData.id);
-               const chaptersRes = await apiFetch(`/api/chapters/${params.provider}/${encodeURIComponent(sourceUrl)}`);
-               const chaptersData = await chaptersRes.json();
-               setChapters(chaptersData);
-            }
+            // Fallback: check general manga table (assuming endpoint exists or handles it)
+            // Note: server currently doesn't have /api/manga/by-source; this might be a placeholder
+            // For now, let's just use the provider data we have
+            const chaptersRes = await apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`);
+            const chaptersData = await chaptersRes.json();
+            setChapters(chaptersData);
          }
       }
     } catch (err) {
@@ -68,7 +69,6 @@ function Reader() {
       setError(err.message);
     } finally {
       setLoading(false);
-      // Reset scroll to top
       window.scrollTo(0, 0);
       setCurrentPage(1);
     }
@@ -86,8 +86,8 @@ function Reader() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             manga_id: mangaId(),
-            chapter_id: params.chapterId,
-            chapter_title: searchParams.title ? decodeURIComponent(searchParams.title) : `Chapter ${params.chapterId}`,
+            chapter_id: params.url,
+            chapter_title: searchParams.title ? decodeURIComponent(searchParams.title) : `Chapter ${params.url}`,
             last_page: pageNum,
             total_pages: images().length,
           }),
@@ -108,7 +108,7 @@ function Reader() {
   onCleanup(() => window.removeEventListener("keydown", handleKeyDown));
 
   const navigateChapter = (dir) => {
-    const currentIndex = chapters().findIndex(c => c.id === params.chapterId);
+    const currentIndex = chapters().findIndex(c => c.id === params.url);
     if (currentIndex === -1) return;
 
     let targetChapter;
@@ -174,8 +174,8 @@ function Reader() {
           </div>
         </div>
         <div class="controls-bottom">
-          <button onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.chapterId)+1]} class="control-btn">Prev</button>
-          <button onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.chapterId)-1]} class="control-btn">Next</button>
+          <button onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.url)+1]} class="control-btn">Prev</button>
+          <button onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} disabled={!chapters()[chapters().findIndex(c => c.id === params.url)-1]} class="control-btn">Next</button>
         </div>
       </div>
     </div>
