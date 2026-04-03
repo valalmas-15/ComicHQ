@@ -533,16 +533,90 @@ input:focus {
   height: calc(60px + env(safe-area-inset-top, 20px));
 }
 
-.reader-controls.bottom {
-  bottom: 0;
-  padding-bottom: env(safe-area-inset-bottom, 20px);
-  transform: translateY(100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  height: calc(75px + env(safe-area-inset-bottom, 20px));
-}
-
 .reader-controls.visible {
   transform: translateY(0) !important;
+}
+
+/* 📕 2-Row Reader Header */
+.reader-controls.top.two-row {
+  height: auto !important;
+  min-height: calc(100px + env(safe-area-inset-top, 20px));
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem 0.75rem 1rem;
+}
+
+.reader-header-row-1 {
+  width: 100%;
+  padding-top: env(safe-area-inset-top, 10px);
+  padding-bottom: 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.reader-header-row-2 {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 16px;
+}
+
+.reader-back-btn-minimal {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+}
+
+.reader-nav-btn-small {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+
+.reader-nav-btn-small:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.reader-nav-btn-small.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.chapter-select-main {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 40px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 0.75rem;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .reader-nav-content {
