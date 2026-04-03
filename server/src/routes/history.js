@@ -46,7 +46,42 @@ module.exports = (db) => {
     });
   });
 
-  // 5. Save history
+  // 5. Bulk Actions (Read/Unread)
+  router.post("/bulk", (req, res) => {
+    const { manga_id, chapter_ids, action } = req.body;
+    const userId = req.user.id;
+
+    if (!manga_id || !Array.isArray(chapter_ids) || chapter_ids.length === 0) {
+      return res.status(400).json({ error: "Invalid request data" });
+    }
+
+    db.serialize(() => {
+      db.run("BEGIN TRANSACTION");
+      try {
+        if (action === "read") {
+          const stmt = db.prepare("INSERT OR IGNORE INTO read_chapters (user_id, manga_id, chapter_id) VALUES (?, ?, ?)");
+          chapter_ids.forEach(id => stmt.run(userId, manga_id, id));
+          stmt.finalize();
+        } else {
+          const stmt = db.prepare("DELETE FROM read_chapters WHERE user_id = ? AND manga_id = ? AND chapter_id = ?");
+          chapter_ids.forEach(id => stmt.run(userId, manga_id, id));
+          stmt.finalize();
+        }
+        
+        db.run("COMMIT", (err) => {
+          if (err) throw err;
+          // Trigger count update for unread badges
+          db.run("UPDATE manga_library SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [manga_id]);
+          res.json({ success: true, count: chapter_ids.length });
+        });
+      } catch (err) {
+        db.run("ROLLBACK");
+        res.status(500).json({ error: err.message });
+      }
+    });
+  });
+
+  // 6. Save history (Single update from Reader)
   router.post("/", (req, res) => {
     const { manga_id, chapter_id, chapter_title, last_page, manga_title, thumbnail_url, provider, source_id, type } = req.body;
     const userId = req.user.id;
