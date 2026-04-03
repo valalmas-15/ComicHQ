@@ -205,17 +205,17 @@ function Reader() {
         <Show when={!loading() && images().length > 0}>
           <div class="reader-footer-actions">
              <button onClick={() => navigateChapter("next")} class="next-ch-footer-btn">
-                <span>Next Chapter</span>
-                <i>→</i>
-             </button>
-          </div>
-        </Show>
-      </div>
-
       {/* Consolidated Top Navigation (Matches Global Header Size) */}
-      <div class={`reader-controls top ${showControls() ? "visible" : ""}`} style="z-index: 1000 !important;">
+      <div 
+        class={`reader-controls top ${showControls() ? "visible" : ""}`} 
+        style="z-index: 4000 !important;"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div class="reader-nav-content">
-          <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} class="reader-mini-btn">
+          <button 
+            onClick={(e) => { e.stopPropagation(); navigate(-1); }} 
+            class="reader-mini-btn"
+          >
              <i>←</i>
           </button>
           
@@ -269,6 +269,64 @@ function Reader() {
               <i>»</i>
             </button>
           </div>
+        </div>
+      </div>
+
+      <div class="reader-view-area" onClick={() => setShowControls(!showControls())}>
+        <div class="reader-content">
+          <div class="reader-header-spacer"></div>
+          <For each={images()}>
+            {(src, index) => {
+              const [loaded, setLoaded] = createSignal(false);
+              return (
+                <div class="image-wrapper">
+                  {!loaded() && (
+                    <div class="image-loader">
+                      <div class="spinner"></div>
+                      <span>Halaman {index() + 1} sedang dimuat...</span>
+                    </div>
+                  )}
+                  <img
+                    src={getProxyUrl(src)}
+                    alt={`Page ${index() + 1}`}
+                    class="reader-image"
+                    onLoad={() => setLoaded(true)}
+                    loading={index() < 3 ? "eager" : "lazy"}
+                    style={{ display: loaded() ? 'block' : 'none' }}
+                    ref={(el) => {
+                      const observer = new IntersectionObserver((entries) => {
+                        if (entries[0].isIntersecting) {
+                          setCurrentPage(index() + 1);
+                          updateHistory(index() + 1);
+                        }
+                      }, { threshold: 0.1 });
+                      observer.observe(el);
+                    }}
+                    onError={(e) => {
+                      e.target.title = "Gagal memuat gambar. Klik untuk coba lagi.";
+                      e.target.style.cursor = "pointer";
+                      e.target.onclick = () => {
+                        const currentSrc = e.target.src;
+                        const cleanSrc = currentSrc.split('&retry=')[0];
+                        e.target.src = cleanSrc + (cleanSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+                      };
+                    }}
+                  />
+                  {loaded() && <div class="page-badge">Hal {index() + 1}</div>}
+                </div>
+              );
+            }}
+          </For>
+          
+          {/* End of Chapter Action */}
+          <Show when={!loading() && images().length > 0}>
+            <div class="reader-footer-actions">
+               <button onClick={() => navigateChapter("next")} class="next-ch-footer-btn">
+                  <span>Next Chapter</span>
+                  <i>→</i>
+               </button>
+            </div>
+          </Show>
         </div>
       </div>
     </div>
