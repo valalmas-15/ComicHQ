@@ -169,7 +169,8 @@ function Reader() {
         </div>
       </Show>
 
-      <div class="image-list">
+      <div class="reader-content">
+        <div class="reader-header-spacer"></div>
         <For each={images()}>
           {(src, index) => (
             <div class="image-wrapper">
@@ -211,25 +212,15 @@ function Reader() {
         </Show>
       </div>
 
-      {/* 2-Row Top Navigation */}
-      <div class={`reader-controls top two-row ${showControls() ? "visible" : ""}`} style="z-index: 1000 !important;">
-        <div class="reader-header-row-1">
-          <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} class="reader-back-btn-minimal">
-             <i>←</i> Kembali ke Detail
-          </button>
-        </div>
-        
-        <div class="reader-header-row-2">
-          <button 
-             onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
-             class="reader-nav-btn-small"
-             disabled={chapters().findIndex(c => c.id === params.url) === 0}
-          >
-             <i>«</i> Prev
+      {/* Consolidated Top Navigation (Matches Global Header Size) */}
+      <div class={`reader-controls top ${showControls() ? "visible" : ""}`} style="z-index: 1000 !important;">
+        <div class="reader-nav-content">
+          <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} class="reader-mini-btn">
+             <i>←</i>
           </button>
           
           <select 
-            class="chapter-select-main"
+            class="chapter-dropdown-global-style"
             value={params.url}
             onChange={(e) => {
                const target = chapters().find(c => c.id === e.target.value);
@@ -248,13 +239,22 @@ function Reader() {
             </For>
           </select>
 
-          <button 
-             onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
-             class="reader-nav-btn-small primary"
-             disabled={chapters().findIndex(c => c.id === params.url) === chapters().length - 1}
-          >
-             Next <i>»</i>
-          </button>
+          <div class="reader-nav-icons">
+            <button 
+              onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
+              class="reader-icon-btn"
+              disabled={chapters().findIndex(c => c.id === params.url) === 0}
+            >
+              <i>«</i>
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
+              class="reader-icon-btn primary"
+              disabled={chapters().findIndex(c => c.id === params.url) === chapters().length - 1}
+            >
+              <i>»</i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
