@@ -215,11 +215,12 @@ class GenericWPProvider extends BaseProvider {
 
             let date =
               $(el)
-                .find(".text-muted-foreground, .chapterdate")
+                .find(".text-muted-foreground, .chapterdate, .text-xs.font-medium, .text-right")
                 .last()
                 .text()
                 .trim() ||
               $(el).find("p").last().text().trim() ||
+              $(el).find("span").last().text().trim() ||
               "N/A";
 
             return {

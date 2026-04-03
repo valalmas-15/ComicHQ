@@ -15,6 +15,7 @@ function MangaDetail() {
   const [isSelecting, setIsSelecting] = createSignal(false);
   const [manga, setManga] = createSignal(null);
   const [mangaId, setMangaId] = createSignal(null);
+  const [lastRead, setLastRead] = createSignal(null);
 
   const fetchDetails = async () => {
     const url = decodeURIComponent(params.url);
@@ -27,6 +28,7 @@ function MangaDetail() {
       setManga(cached.manga);
       setMangaId(cached.mangaId);
       setReadChapterIds(cached.readChapterIds || []);
+      setLastRead(cached.lastRead || null);
       setLoading(false); // Show data immediately
     }
 
@@ -49,11 +51,18 @@ function MangaDetail() {
       setChapters(chaptersData);
 
       let freshReadIds = [];
+      let freshLastRead = null;
+
       if (mangaData) {
         setMangaId(mangaData.id);
-        const readRes = await apiFetch(`/api/read-chapters/${mangaData.id}`);
+        const [readRes, lastRes] = await Promise.all([
+          apiFetch(`/api/read-chapters/${mangaData.id}`),
+          apiFetch(`/api/history/last/${mangaData.id}`)
+        ]);
         freshReadIds = await readRes.json();
+        freshLastRead = await lastRes.json();
         setReadChapterIds(freshReadIds);
+        setLastRead(freshLastRead);
       }
 
       // Update Cache
@@ -61,7 +70,8 @@ function MangaDetail() {
         chapters: chaptersData,
         manga: mangaData,
         mangaId: mangaData ? mangaData.id : null,
-        readChapterIds: freshReadIds
+        readChapterIds: freshReadIds,
+        lastRead: freshLastRead
       });
     } catch (err) {
       console.error(err);
@@ -99,9 +109,15 @@ function MangaDetail() {
 
       if (response.ok) {
         // Refresh read list
-        const readRes = await apiFetch(`/api/read-chapters/${mangaId()}`);
+        const [readRes, lastRes] = await Promise.all([
+          apiFetch(`/api/read-chapters/${mangaId()}`),
+          apiFetch(`/api/history/last/${mangaId()}`)
+        ]);
         const readData = await readRes.json();
+        const lastData = await lastRes.json();
+        
         setReadChapterIds(readData);
+        setLastRead(lastData);
 
         setSelected([]);
         setIsSelecting(false);
@@ -111,7 +127,8 @@ function MangaDetail() {
     }
   };
 
-  const isRead = (id) => readChapterIds().includes(id);
+  const isRead = (id) => readChapterIds().some(h => h.chapter_id === id);
+  const getProgress = (id) => readChapterIds().find(h => h.chapter_id === id);
 
   const toggleAll = () => {
     if (selected().length === chapters().length) {
@@ -130,8 +147,43 @@ function MangaDetail() {
         <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
           <img src={`${API_BASE}/api/proxy?url=${encodeURIComponent(manga().thumbnail_url)}`} alt={manga().title} style="width: 120px; height: 180px; object-fit: cover; border-radius: 8px;" />
           <div style="display: flex; flex-direction: column; justify-content: flex-end;">
-            <h1 style="margin-bottom: 0.5rem;">{manga().title}</h1>
-            <p style="color: var(--text-muted); text-transform: capitalize;">{params.provider}</p>
+            <h1 style="margin-bottom: 0.25rem; font-size: 1.5rem; line-height: 1.2;">{manga().title}</h1>
+            <p style="color: var(--text-muted); text-transform: capitalize; font-size: 0.9rem; margin-bottom: 0.5rem;">{params.provider}</p>
+            
+            <Show
+              when={lastRead()}
+              fallback={
+                <Show when={chapters().length > 0}>
+                  <A
+                    href={`/read/${params.provider}/${encodeURIComponent(chapters().at(-1).id)}?source=${encodeURIComponent(params.url)}&title=${encodeURIComponent(chapters().at(-1).title)}`}
+                    style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); padding: 10px 16px; border-radius: 12px; width: fit-content; margin-top: 0.75rem;"
+                  >
+                    <div style="background: #22c55e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1px;">
+                      <span style="font-size: 0.7rem; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Mari Memulai</span>
+                      <span style="font-size: 0.95rem; color: #fff; font-weight: 700;">Mulai Baca</span>
+                    </div>
+                  </A>
+                </Show>
+              }
+            >
+              <A 
+                href={`/read/${params.provider}/${encodeURIComponent(lastRead().chapter_id)}?source=${encodeURIComponent(params.url)}&title=${encodeURIComponent(lastRead().chapter_title)}&page=${lastRead().last_page}`}
+                style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); padding: 10px 16px; border-radius: 12px; width: fit-content; margin-top: 0.75rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
+              >
+                <div style="background: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1px;">
+                  <span style="font-size: 0.7rem; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Lanjut Membaca</span>
+                  <span style="font-size: 0.95rem; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
+                    {lastRead().chapter_title} (Hal {lastRead().last_page})
+                  </span>
+                </div>
+              </A>
+            </Show>
           </div>
         </div>
       </Show>
@@ -201,7 +253,9 @@ function MangaDetail() {
               {/* End chapter-content */}
               <div style="display: flex; align-items: center; gap: 1rem;">
                 <Show when={isRead(chapter.id)}>
-                  <span class="read-status">✓ Dibaca</span>
+                  <span class="read-status" style="font-size: 0.8rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 8px; border-radius: 6px; font-weight: 600;">
+                    ✓ Hal {getProgress(chapter.id)?.last_page || 1}
+                  </span>
                 </Show>
                 <Show when={isSelecting()}>
                   <div

@@ -640,13 +640,17 @@ input:focus {
   
   .reader-content {
     padding: 0 !important;
-    width: 100vw;
-    margin-top: 0 !important; /* Force content to absolute top */
+    width: 100% !important;
+    margin-top: 0 !important;
+    overflow-x: hidden;
   }
   
   .reader-image {
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100%;
     height: auto;
+    display: block;
+    margin: 0 auto;
   }
 }
 

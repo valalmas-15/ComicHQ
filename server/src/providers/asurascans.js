@@ -4,17 +4,17 @@ const GenericWPProvider = require('./genericProvider');
 
 class AsuraScans extends GenericWPProvider {
   constructor() {
-    super("Asura Scans", "https://asurascans.com", {
-      item: ".listupd .bs, .bsx, .series-card, .grid > a, .divide-y > div",
-      title: ".tt, h3, .font-medium, .text-sm.font-bold",
+    super("Asura Scans", "https://asuratoon.com", {
+      item: ".listupd .bs, .bsx, .series-card, .grid > a, .divide-y > div, a.flex.gap-3",
+      title: ".tt, h3, .font-medium, .text-sm.font-bold, .text-sm.font-semibold",
       link: "a",
       image: "img",
-      searchPath: "/browse?search="
+      searchPath: "/?s="
     });
     this.mirrors = [
-      "https://asurascans.com",
+      "https://asuratoon.com",
       "https://asuracomic.net",
-      "https://asura.nacmanga.com"
+      "https://asurascans.com"
     ];
   }
 
@@ -32,7 +32,7 @@ class AsuraScans extends GenericWPProvider {
 
       // Strategy 1: Standard Search
       const $ = cheerio.load(html);
-      let images = $(".main-reading-area img, #readerarea img, .w-full.flex-col img")
+      let images = $(".main-reading-area img, #readerarea img, .w-full.flex-col img, .flex.flex-col.items-center img")
         .map((i, el) => $(el).attr("src") || $(el).attr("data-src") || $(el).attr("data-lazy-src"))
         .get()
         .filter(img => img && img.startsWith("http") && !img.includes('logo') && !img.includes('banner'));
@@ -41,12 +41,11 @@ class AsuraScans extends GenericWPProvider {
       if (images.length < 5) {
         console.log(`🎨 [Asura Scans] DOM Extraction found only ${images.length} images. Trying cleaned Regex...`);
         
-        // Unescape common entities to make regex cleaner
         const cleanHtml = html.replace(/&quot;/g, '"');
         
         const regexes = [
           /https:\/\/cdn\.asurascans\.com\/asura-images\/chapters\/[^"&\s(]+\.webp/g,
-          /https:\/\/cdn\.asurascans\.com\/asura-images\/[^"&\s(]+\.(?:webp|jpg|png|jpeg)/g
+          /https:\/\/asura\.nacmanga\.com\/wp-content\/uploads\/[^"&\s(]+\.(?:webp|jpg|png|jpeg)/g
         ];
 
         let regexResults = [];
@@ -59,11 +58,10 @@ class AsuraScans extends GenericWPProvider {
 
         const filtered = [...new Set(regexResults)]
            .filter(img => 
-             img.includes('asura-images/chapters') && 
              !img.includes('logo') && 
              !img.includes('banner') && 
              !img.includes('cover')
-           ).sort(); // Sort often works for sequential filenames 001, 002...
+           ); // REMOVED SORT - matches stay in document order
 
         if (filtered.length > 0) {
            console.log(`✅ [Asura Scans] Regex extract found ${filtered.length} images.`);
