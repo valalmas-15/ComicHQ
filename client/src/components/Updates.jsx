@@ -20,7 +20,14 @@ function Updates() {
     }
   };
 
-  onMount(fetchUpdates);
+  onMount(() => {
+    fetchUpdates();
+    window.addEventListener("refresh-requested", fetchUpdates);
+  });
+
+  onCleanup(() => {
+    window.removeEventListener("refresh-requested", fetchUpdates);
+  });
 
   const getProxyUrl = (url) =>
     `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;

@@ -12,6 +12,7 @@ import Login from "./components/Login";
 import Profile from "./components/Profile";
 import { useAuth } from "./contexts/AuthContext";
 import { Show } from "solid-js";
+import PullToRefresh from "./components/PullToRefresh";
 import "./index.css";
 
 function ProtectedRoute(props) {
@@ -34,6 +35,8 @@ function App(props) {
 
   return (
     <div class={`app-container ${isReader() ? 'reader-mode' : ''}`}>
+      <div class="status-bar-sim" />
+      <PullToRefresh />
       <Show when={!isReader() && !isAuthPage()}>
         <Navbar />
       </Show>

@@ -40,7 +40,14 @@ function Library() {
       setLoading(false);
     }
   };
-  onMount(fetchLibrary);
+  onMount(() => {
+    fetchLibrary();
+    window.addEventListener("refresh-requested", fetchLibrary);
+  });
+
+  onCleanup(() => {
+    window.removeEventListener("refresh-requested", fetchLibrary);
+  });
 
   const removeFromLibrary = async (id, source_id) => {
     if (!confirm("Hapus dari library?")) return;
