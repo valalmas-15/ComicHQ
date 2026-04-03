@@ -162,7 +162,10 @@ function Reader() {
       >
         <div class="reader-nav-content">
           <button 
-            onClick={(e) => { e.stopPropagation(); navigate(-1); }} 
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                navigate(`/manga/${params.provider}/${encodeURIComponent(searchParams.source)}`); 
+            }} 
             class="reader-mini-btn"
           >
              <i>←</i>

@@ -48,48 +48,54 @@ function History() {
         <For each={history()}>
           {(item) => (
             <div class="history-card">
-              <div class="history-poster">
-                <img
-                  src={getProxyUrl(item.thumbnail_url)}
-                  alt={item.title}
-                  class="manga-thumbnail"
-                  onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
-                />
-                <Show when={item.type === "manhwa"}>
-                  <div class="origin-flag-badge">🇰🇷</div>
-                </Show>
-                <Show when={item.type === "manhua"}>
-                  <div class="origin-flag-badge">🇨🇳</div>
-                </Show>
-                 <Show when={item.type === "manga"}>
-                  <div class="origin-flag-badge">🇯🇵</div>
-                </Show>
-              </div>
-              
-              <div class="history-details">
-                <div class="history-header">
-                  <h3>{item.title}</h3>
-                  <span class="provider-tag">{item.provider}</span>
+              <A 
+                href={`/manga/${item.provider}/${encodeURIComponent(item.source_id)}`}
+                class="history-main-link"
+                style={{ "display": "flex", "width": "100%", "text-decoration": "none", "color": "inherit" }}
+              >
+                <div class="history-poster">
+                  <img
+                    src={getProxyUrl(item.thumbnail_url)}
+                    alt={item.title}
+                    class="manga-thumbnail"
+                    onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
+                  />
+                  <Show when={item.type === "manhwa"}>
+                    <div class="origin-flag-badge">🇰🇷</div>
+                  </Show>
+                  <Show when={item.type === "manhua"}>
+                    <div class="origin-flag-badge">🇨🇳</div>
+                  </Show>
+                   <Show when={item.type === "manga"}>
+                    <div class="origin-flag-badge">🇯🇵</div>
+                  </Show>
                 </div>
                 
-                <p class="history-chapter">{item.chapter_title}</p>
-                
-                <div class="history-meta">
-                  <div class="progress-indicator">
-                    <i class="fas fa-bookmark mr-2"></i>
-                    <span>Trakhir di Hal. {item.last_page}</span>
+                <div class="history-details">
+                  <div class="history-header">
+                    <h3>{item.title}</h3>
+                    <span class="provider-tag">{item.provider}</span>
                   </div>
-                  <span class="time-ago">{formatRelativeTime(item.updated_at)}</span>
+                  
+                  <p class="history-chapter">{item.chapter_title}</p>
+                  
+                  <div class="history-meta">
+                    <div class="progress-indicator">
+                      <i class="fas fa-bookmark mr-2"></i>
+                      <span>Hal. {item.last_page}</span>
+                    </div>
+                    <span class="time-ago">{formatRelativeTime(item.updated_at)}</span>
+                  </div>
                 </div>
-                
-                <div class="history-action">
-                  <A
-                    href={`/read/${item.provider}/${encodeURIComponent(item.chapter_id)}?source=${encodeURIComponent(item.source_id)}&title=${encodeURIComponent(item.chapter_title)}&type=${item.type}`}
-                    class="continue-reading-btn"
-                  >
-                    <i class="fas fa-play mr-2"></i> Lanjut Baca
-                  </A>
-                </div>
+              </A>
+
+              <div class="history-action">
+                <A
+                  href={`/read/${item.provider}/${encodeURIComponent(item.chapter_id)}?source=${encodeURIComponent(item.source_id)}&title=${encodeURIComponent(item.chapter_title)}&type=${item.type}`}
+                  class="continue-reading-btn"
+                >
+                  <i class="fas fa-play mr-2"></i> Lanjut Baca
+                </A>
               </div>
             </div>
           )}

@@ -65,26 +65,19 @@ function Updates() {
         </div>
       </Show>
 
-      <div class="manga-grid">
+      <div class="updates-list">
         <For each={updates()}>
           {(manga) => (
-            <div class="manga-card update-card">
+            <div class="history-card update-card-item">
               <A
-                href={`/manga/${manga.provider}/${encodeURIComponent(manga.source_id)}`}
-                class="card-link"
+                href={manga.latest_chapter_id 
+                  ? `/read/${manga.provider}/${encodeURIComponent(manga.latest_chapter_id)}?source=${encodeURIComponent(manga.source_id)}&title=${encodeURIComponent(manga.latest_chapter_title)}&type=${manga.type}`
+                  : `/manga/${manga.provider}/${encodeURIComponent(manga.source_id)}`
+                }
+                class="history-main-link"
+                style={{ "display": "flex", "width": "100%", "text-decoration": "none", "color": "inherit" }}
               >
-                <div class="manga-poster-wrapper">
-                  <span class="unread-badge">{manga.unread_count} New</span>
-                  <span class="provider-badge">{manga.provider}</span>
-                  <Show when={manga.type === "manhwa"}>
-                    <div class="origin-flag-badge">🇰🇷</div>
-                  </Show>
-                  <Show when={manga.type === "manhua"}>
-                    <div class="origin-flag-badge">🇨🇳</div>
-                  </Show>
-                  <Show when={manga.type === "manga"}>
-                    <div class="origin-flag-badge">🇯🇵</div>
-                  </Show>
+                <div class="history-poster">
                   <img
                     src={getProxyUrl(manga.thumbnail_url)}
                     alt={manga.title}
@@ -92,12 +85,36 @@ function Updates() {
                     loading="lazy"
                     onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
                   />
-                </div>
-                <div class="card-info">
-                  <h3>{manga.title}</h3>
-                  <Show when={manga.updated_at}>
-                    <div class="update-time-small">{formatRelativeTime(manga.updated_at)}</div>
+                  <Show when={manga.unread_count > 0}>
+                    <div class="unread-count-badge-mini">{manga.unread_count}</div>
                   </Show>
+                  <Show when={manga.type === "manhwa"}>
+                    <div class="origin-flag-badge">🇰🇷</div>
+                  </Show>
+                  <Show when={manga.type === "manhua"}>
+                    <div class="origin-flag-badge">🇨🇳</div>
+                  </Show>
+                   <Show when={manga.type === "manga"}>
+                    <div class="origin-flag-badge">🇯🇵</div>
+                  </Show>
+                </div>
+                
+                <div class="history-details">
+                  <div class="history-header">
+                    <h3 class="update-manga-title">{manga.title}</h3>
+                    <span class="provider-tag">{manga.provider}</span>
+                  </div>
+                  
+                  <div class="latest-chapter-box" style={{ "margin-top": "4px" }}>
+                    <span class="update-label" style={{ "font-size": "0.75rem", "color": "var(--text-muted)" }}>Rilis Terbaru:</span>
+                    <p class="latest-chapter-name" style={{ "color": "var(--primary)", "font-weight": "bold", "font-size": "0.9rem", "margin": "0" }}>
+                      {manga.latest_chapter_title || `New Update Available!`}
+                    </p>
+                  </div>
+                  
+                  <div class="history-meta" style={{ "margin-top": "auto" }}>
+                     <span class="time-ago">{formatRelativeTime(manga.updated_at)}</span>
+                  </div>
                 </div>
               </A>
             </div>
