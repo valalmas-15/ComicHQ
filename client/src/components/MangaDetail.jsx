@@ -248,8 +248,18 @@ function MangaDetail() {
 
         <For each={chapters()}>
           {(chapter) => {
-            const isFinished = readChapterIds().includes(chapter.id);
-            const isLast = lastRead()?.chapter_id === chapter.id;
+            // Normalize IDs to handle different mirror domains (asuratoon vs asuracomic)
+            const normalizeId = (id) => {
+              if (!id) return "";
+              try {
+                const parts = id.split('/').filter(Boolean);
+                return parts[parts.length - 1]; // Return the slug part
+              } catch(e) { return id; }
+            };
+
+            const chSlug = normalizeId(chapter.id);
+            const isFinished = readChapterIds().some(id => normalizeId(id) === chSlug);
+            const isLast = normalizeId(lastRead()?.chapter_id) === chSlug;
 
             return (
               <div
