@@ -46,7 +46,19 @@ function MangaDetail() {
       const library = await libRes.json();
       const chaptersData = await chaptersRes.json();
       
-      const mangaData = library.find((m) => m.source_id === url);
+      let mangaData = library.find((m) => m.source_id === url);
+      
+      // NEW: If not in library, try to find in general manga table (for history/progress)
+      if (!mangaData) {
+        try {
+          const mRes = await apiFetch(`/api/manga/by-source?url=${encodeURIComponent(url)}`);
+          if (mRes.ok) {
+            const mData = await mRes.json();
+            if (mData) mangaData = mData;
+          }
+        } catch(e) { console.error("Manga lookup failed", e); }
+      }
+
       setManga(mangaData);
       setChapters(chaptersData);
 
@@ -56,7 +68,7 @@ function MangaDetail() {
       if (mangaData) {
         setMangaId(mangaData.id);
         const [readRes, lastRes] = await Promise.all([
-          apiFetch(`/api/read-chapters/${mangaData.id}`),
+          apiFetch(`/api/history/${mangaData.id}`),
           apiFetch(`/api/history/last/${mangaData.id}`)
         ]);
         freshReadIds = await readRes.json();

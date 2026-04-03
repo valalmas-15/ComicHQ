@@ -11,13 +11,13 @@ async function openDb() {
   });
 }
 
-// Get most recently read chapter/page for a manga
+// Get most recently read chapter/page for a manga (user-specific)
 router.get("/last/:mangaId", async (req, res) => {
   try {
     const db = await openDb();
     const lastRead = await db.get(
-      "SELECT chapter_id, chapter_title, last_page FROM history WHERE manga_id = ? ORDER BY updated_at DESC LIMIT 1",
-      [req.params.mangaId]
+      "SELECT chapter_id, chapter_title, last_page FROM history WHERE user_id = ? AND manga_id = ? ORDER BY updated_at DESC LIMIT 1",
+      [req.user.id, req.params.mangaId]
     );
     res.json(lastRead || null);
   } catch (e) {
@@ -25,13 +25,13 @@ router.get("/last/:mangaId", async (req, res) => {
   }
 });
 
-// Get read chapters for a manga
+// Get all read chapters for a manga (user-specific)
 router.get("/:mangaId", async (req, res) => {
   try {
     const db = await openDb();
     const history = await db.all(
-      "SELECT chapter_id, last_page FROM history WHERE manga_id = ?",
-      [req.params.mangaId]
+      "SELECT chapter_id, last_page FROM history WHERE user_id = ? AND manga_id = ?",
+      [req.user.id, req.params.mangaId]
     );
     res.json(history);
   } catch (e) {
@@ -39,15 +39,16 @@ router.get("/:mangaId", async (req, res) => {
   }
 });
 
-// Update/Insert history
+// Update/Insert history (user-specific)
 router.post("/", async (req, res) => {
   const { manga_id, chapter_id, chapter_title, last_page, total_pages } = req.body;
+  const user_id = req.user.id;
   try {
     const db = await openDb();
     await db.run(
-      `INSERT OR REPLACE INTO history (manga_id, chapter_id, chapter_title, last_page, total_pages, updated_at) 
-       VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-      [manga_id, chapter_id, chapter_title, last_page, total_pages]
+      `INSERT OR REPLACE INTO history (user_id, manga_id, chapter_id, chapter_title, last_page, total_pages, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      [user_id, manga_id, chapter_id, chapter_title, last_page, total_pages]
     );
     res.json({ success: true });
   } catch (error) {
@@ -55,24 +56,25 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Bulk update history
+// Bulk update history (user-specific)
 router.post("/bulk", async (req, res) => {
   const { manga_id, chapter_ids, action } = req.body;
+  const user_id = req.user.id;
   try {
     const db = await openDb();
     if (action === "read") {
       for (const cid of chapter_ids) {
         await db.run(
-          `INSERT OR IGNORE INTO history (manga_id, chapter_id, chapter_title, last_page, updated_at) 
-           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-          [manga_id, cid, "Manual Mark", 1]
+          `INSERT OR IGNORE INTO history (user_id, manga_id, chapter_id, chapter_title, last_page, updated_at) 
+           VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+          [user_id, manga_id, cid, "Manual Mark", 1]
         );
       }
     } else {
       const placeholders = chapter_ids.map(() => "?").join(",");
       await db.run(
-        `DELETE FROM history WHERE manga_id = ? AND chapter_id IN (${placeholders})`,
-        [manga_id, ...chapter_ids]
+        `DELETE FROM history WHERE user_id = ? AND manga_id = ? AND chapter_id IN (${placeholders})`,
+        [user_id, manga_id, ...chapter_ids]
       );
     }
     res.json({ success: true });
@@ -81,18 +83,18 @@ router.post("/bulk", async (req, res) => {
   }
 });
 
-// Clear history for a manga
+// Clear history for a manga (user-specific)
 router.delete("/:mangaId", async (req, res) => {
   try {
     const db = await openDb();
-    await db.run("DELETE FROM history WHERE manga_id = ?", [req.params.mangaId]);
+    await db.run("DELETE FROM history WHERE user_id = ? AND manga_id = ?", [req.user.id, req.params.mangaId]);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// Get overall history
+// Get overall history (user-specific)
 router.get("/", async (req, res) => {
   try {
     const db = await openDb();
@@ -100,8 +102,9 @@ router.get("/", async (req, res) => {
       SELECT h.*, m.title, m.thumbnail_url, m.provider, m.source_id 
       FROM history h 
       JOIN manga m ON h.manga_id = m.id 
+      WHERE h.user_id = ?
       ORDER BY h.updated_at DESC
-    `);
+    `, [req.user.id]);
     res.json(history);
   } catch (e) {
     res.status(500).json({ error: e.message });
