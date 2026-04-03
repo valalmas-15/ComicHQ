@@ -236,7 +236,7 @@ function Reader() {
             {(src, index) => {
               const [loaded, setLoaded] = createSignal(false);
               return (
-                <div class="image-wrapper" style={{ "min-height": "100px", "background": "transparent" }}>
+                <div class="image-wrapper" style={{ "min-height": "100px", "background": "crimson", "border": "1px solid yellow" }}>
                   <Show when={!loaded()}>
                     <div class="image-loader">
                       <div class="spinner"></div>
@@ -260,7 +260,8 @@ function Reader() {
                       "width": "100%",
                       "height": "auto",
                       "min-height": "200px",
-                      "object-fit": "contain"
+                      "object-fit": "contain",
+                      "border": "2px solid white"
                     }}
                     ref={(el) => {
                       const observer = new IntersectionObserver((entries) => {
