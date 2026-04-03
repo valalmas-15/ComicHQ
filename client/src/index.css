@@ -473,11 +473,24 @@ input:focus {
   z-index: 1000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
+  padding-top: env(safe-area-inset-top); /* Offset for iPhone notch in standalone mode */
   gap: 1rem;
 }
 
 .reader-header.hidden {
   transform: translateY(-100%);
+}
+
+.reader-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: -1;
 }
 
 .reader-nav-controls {
@@ -613,6 +626,7 @@ input:focus {
   .reader-content {
     padding: 0 !important;
     width: 100vw;
+    margin-top: 0 !important; /* Force content to absolute top */
   }
   
   .reader-image {
