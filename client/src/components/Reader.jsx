@@ -250,7 +250,7 @@ function Reader() {
                   <img
                     src={getProxyUrl(src)}
                     alt={`Page ${index() + 1}`}
-                    class="reader-image"
+                    classList={{ "reader-image": true, "loaded": loaded() }}
                     onLoad={() => setLoaded(true)}
                     onError={(e) => {
                       console.error(`Image failed: ${src}`);
