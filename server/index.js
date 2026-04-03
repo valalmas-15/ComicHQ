@@ -297,6 +297,16 @@ app.get("/api/library", authenticateToken, (req, res) => {
   });
 });
 
+app.get("/api/manga/by-source", (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: "Source URL required" });
+  
+  db.get("SELECT * FROM manga_library WHERE source_id = ?", [url], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row || null);
+  });
+});
+
 app.post("/api/library", authenticateToken, (req, res) => {
   const { title, source_id, provider, thumbnail_url, type } = req.body;
   const userId = req.user.id;

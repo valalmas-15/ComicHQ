@@ -276,9 +276,13 @@ function MangaDetail() {
                   />
                 </Show>
                 
-                <div class="chapter-content">
-                  <span class="chapter-title">{chapter.title}</span>
-                  <span class="chapter-date">{chapter.updated_at}</span>
+                <div class="chapter-content" style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+                  <span class="chapter-title" style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {chapter.title}
+                  </span>
+                  <span class="chapter-date" style="display: block; font-size: 0.8rem; opacity: 0.6; margin-top: 4px;">
+                    {chapter.updated_at}
+                  </span>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 0.75rem; z-index: 2;">

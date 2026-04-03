@@ -83,11 +83,15 @@ module.exports = (db) => {
 
   // 6. Save history (Single update from Reader)
   router.post("/", (req, res) => {
-    const { manga_id, chapter_id, chapter_title, last_page, manga_title, thumbnail_url, provider, source_id, type } = req.body;
+    const { manga_id, chapter_id, chapter_title, last_page, total_pages, manga_title, thumbnail_url, provider, source_id, type } = req.body;
     const userId = req.user.id;
 
     const saveHistory = (mId) => {
-      db.run("INSERT OR IGNORE INTO read_chapters (user_id, manga_id, chapter_id) VALUES (?, ?, ?)", [userId, mId, chapter_id]);
+      // ONLY mark as read if user is on or past the last page
+      if (total_pages && last_page >= total_pages) {
+        db.run("INSERT OR IGNORE INTO read_chapters (user_id, manga_id, chapter_id) VALUES (?, ?, ?)", [userId, mId, chapter_id]);
+      }
+      
       const query = `
         INSERT INTO reading_history (user_id, manga_id, chapter_id, chapter_title, last_page) 
         VALUES (?, ?, ?, ?, ?) 
