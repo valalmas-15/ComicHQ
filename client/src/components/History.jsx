@@ -60,6 +60,7 @@ function History() {
                     class="manga-thumbnail"
                     onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
                   />
+                  <span class="provider-tag">{item.provider}</span>
                   <Show when={item.type === "manhwa"}>
                     <div class="origin-flag-badge">🇰🇷</div>
                   </Show>
@@ -73,17 +74,18 @@ function History() {
                 
                 <div class="history-details">
                   <div class="history-header">
-                    <h3>{item.title}</h3>
-                    <span class="provider-tag">{item.provider}</span>
+                    <h3 class="update-manga-title">{item.title}</h3>
                   </div>
                   
-                  <p class="history-chapter">{item.chapter_title}</p>
+                  <p class="history-chapter" style={{ "font-size": "0.8rem", "margin": "0" }}>{item.chapter_title}</p>
                   
-                  <div class="history-stats-row">
-                    <div class="progress-badge">
+                  <div class="history-stats-row" style={{ "margin": "2px 0" }}>
+                    <div class="progress-badge" style={{ "font-size": "0.7rem", "padding": "2px 6px" }}>
                       <i class="fas fa-bookmark"></i> Hal. {item.last_page}
                     </div>
-                    <span class="time-ago">
+                  </div>
+                  <div class="history-meta" style={{ "margin": "0" }}>
+                    <span class="time-ago" style={{ "font-size": "0.7rem" }}>
                       <i class="far fa-clock"></i> {formatRelativeTime(item.updated_at)}
                     </span>
                   </div>
@@ -95,7 +97,7 @@ function History() {
                   href={`/read/${item.provider}/${encodeURIComponent(item.chapter_id)}?source=${encodeURIComponent(item.source_id)}&title=${encodeURIComponent(item.chapter_title)}&type=${item.type}`}
                   class="continue-reading-btn"
                 >
-                  <i class="fas fa-play" style={{ "margin-right": "10px" }}></i> Lanjut Baca
+                  <i class="fas fa-play"></i> Lanjut Baca
                 </A>
               </div>
             </div>
