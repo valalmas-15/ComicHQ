@@ -3,17 +3,18 @@
 /* COMMON: Fixed Bars */
 .branding-bar {
   position: fixed;
+  top: env(safe-area-inset-top, 0px); /* Posisikan persis di bawah notch */
   left: 0;
   right: 0;
-  top: 0;
-  padding-top: env(safe-area-inset-top, 0px);
-  height: calc(72px + env(safe-area-inset-top, 0px));
-  z-index: 10001;
+  height: 64px; /* Tinggi standar */
   background: rgba(10, 15, 25, 0.96);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  z-index: 4000;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
@@ -113,8 +114,11 @@
 
 /* 💻 DESKTOP: Nav at TOP (Under Branding) */
 @media (min-width: 768px) {
-  .nav-bar {
-    top: calc(72px + env(safe-area-inset-top, 0px)); 
+  .main-nav {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
     height: 52px;
     background: rgba(15, 23, 42, 0.8);
     border-bottom: 2px solid var(--primary);

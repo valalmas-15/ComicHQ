@@ -27,7 +27,7 @@ html, body {
   right: 0;
   height: env(safe-area-inset-top, 0px);
   background: black;
-  z-index: 5000; /* Lower z-index so Navbar is definitely on top */
+  z-index: 5000;
   pointer-events: none;
 }
 
@@ -40,7 +40,7 @@ html, body {
   margin: 0 auto;
   padding: 1rem;
   /* Sync with branding-bar height + safe area */
-  padding-top: calc(72px + env(safe-area-inset-top, 0px));
+  padding-top: calc(64px + env(safe-area-inset-top, 0px));
   transition: all 0.3s ease;
 }
 
@@ -484,8 +484,9 @@ input:focus {
   min-height: 70px;
   display: flex;
   align-items: center;
-  padding: calc(env(safe-area-inset-top, 0px) + 10px) 1rem 0.5rem 1rem;
-  z-index: 1000;
+  padding: calc(env(safe-area-inset-top, 24px) + 20px) 1rem 1rem 1rem;
+  min-height: 80px;
+  z-index: 5001;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
   gap: 1rem;
