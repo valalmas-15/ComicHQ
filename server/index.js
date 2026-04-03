@@ -69,7 +69,7 @@ app.use(express.json());
 
 // --- ROUTES ---
 app.use("/api/auth", authRoutes(db));
-app.use("/api/history", authenticateToken, historyRouter);
+app.use("/api/history", authenticateToken, historyRouter(db));
 
 // 📊 Source Status
 app.get("/api/sources-status", (req, res) => {
