@@ -533,29 +533,33 @@ input:focus {
   height: calc(60px + env(safe-area-inset-top, 20px));
 }
 
-.reader-controls.visible {
-  transform: translateY(0) !important;
-}
-
-/* 📕 2-Row Ultra-Slim Header */
+/* 📕 ULTIMATE SLIM READER HEADER */
 .reader-controls.top.two-row {
-  height: auto !important;
-  min-height: calc(70px + env(safe-area-inset-top, 20px));
-  background: rgba(0, 0, 0, 0.9);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  min-height: calc(75px + env(safe-area-inset-top, 20px));
+  background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   padding: 0 0.75rem 0.6rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transform: translateY(-100%);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reader-controls.top.two-row.visible {
+  transform: translateY(0) !important;
 }
 
 .reader-header-row-1 {
   width: 100%;
-  padding-top: env(safe-area-inset-top, 6px);
+  padding-top: env(safe-area-inset-top, 8px);
   display: flex;
   justify-content: flex-start;
 }
@@ -565,28 +569,28 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
 }
 
 .reader-back-btn-minimal {
   background: none;
   border: none;
-  color: var(--primary);
+  color: #818cf8;
   font-weight: 700;
   font-size: 0.85rem;
   padding: 0.25rem 0;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  cursor: pointer;
 }
 
 .reader-nav-btn-small {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
   font-weight: 700;
   font-size: 0.8rem;
   cursor: pointer;
@@ -594,24 +598,26 @@ input:focus {
 
 .reader-nav-btn-small:disabled {
   opacity: 0.15;
+  cursor: not-allowed;
 }
 
 .reader-nav-btn-small.primary {
   background: var(--primary);
+  border-color: var(--primary);
 }
 
 .chapter-select-main {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.1);
   height: 38px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-align: center;
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 /* 📖 Brutal Edge-to-Edge Reader Layout */
