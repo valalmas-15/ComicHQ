@@ -260,10 +260,27 @@ function Reader() {
                     classList={{ "reader-image": true, "loaded": loaded() }}
                     onLoad={() => setLoaded(true)}
                     onError={(e) => {
-                      console.error(`Image failed: ${src}`);
-                      const currentSrc = e.target.src;
-                      if (!currentSrc.includes('retry=')) {
-                        e.target.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+                      console.error(`❌ [Reader] Page ${index() + 1} Failed: ${src}`);
+                      const el = e.target;
+                      el.style.display = "none";
+                      
+                      // Show specific error overlay with retry button
+                      const parent = el.parentElement;
+                      if (!parent.querySelector(".retry-overlay")) {
+                        const overlay = document.createElement("div");
+                        overlay.className = "retry-overlay";
+                        overlay.style = "position: absolute; top:0; left:0; width:100%; height:100%; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); gap:15px; color:#fff;";
+                        overlay.innerHTML = `
+                          <span style="font-size:1.5rem;">⚠️</span>
+                          <p style="font-size:0.85rem;">Gambar Hal. ${index() + 1} Gagal Dimuat</p>
+                          <button class="retry-btn-styled" style="padding:10px 20px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:700; cursor:pointer;">Coba Lagi</button>
+                        `;
+                        overlay.querySelector(".retry-btn-styled").onclick = () => {
+                           overlay.remove();
+                           el.style.display = "block";
+                           el.src = getProxyUrl(src) + "&retry=" + Date.now();
+                        };
+                        parent.appendChild(overlay);
                       }
                     }}
                     style={{ 

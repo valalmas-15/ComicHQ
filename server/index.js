@@ -233,6 +233,8 @@ app.get("/api/proxy", async (req, res) => {
       referer = "https://westmanga.org/";
     } else if (url.includes("asurascans") || url.includes("asura.net") || url.includes("asuracomic")) {
       referer = "https://asuracomic.net/";
+    } else if (url.includes("shinigami") || url.includes("shngm.id")) {
+      referer = "https://shngm.id/";
     }
 
     const response = await axios.get(url, {
@@ -240,8 +242,11 @@ app.get("/api/proxy", async (req, res) => {
       timeout: 15000,
       headers: {
         "Referer": referer,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Accept": "*/*"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
       },
       maxRedirects: 5
     });
