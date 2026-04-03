@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const sqlite3 = require("sqlite3").verbose();
 const { open } = require("sqlite");
 const { authenticateToken } = require("./middleware/auth");
