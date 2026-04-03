@@ -146,7 +146,11 @@ function Reader() {
     }
   };
 
-  const getProxyUrl = (url) => `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;
+  const getProxyUrl = (url) => {
+    if (!url) return "";
+    // Force relative path to use Vite proxy
+    return `/api/proxy?url=${encodeURIComponent(url)}`;
+  };
 
   return (
     <div class="reader-container">
