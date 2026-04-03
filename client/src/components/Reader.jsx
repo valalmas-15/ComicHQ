@@ -15,15 +15,28 @@ function Reader() {
   const [currentPage, setCurrentPage] = createSignal(1);
   const [showControls, setShowControls] = createSignal(false);
 
+  createEffect(() => {
+    const chapterId = params.chapterId;
+    const provider = params.provider;
+    if (chapterId && chapterId !== "undefined" && provider) {
+      fetchChapter();
+    }
+  });
+
   const fetchChapter = async () => {
+    const chapterId = params.chapterId;
+    if (!chapterId || chapterId === "undefined") return;
+    
     setLoading(true);
     setError(null);
     try {
       const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : null;
-      let url = `/api/chapters/pages/${params.provider}/${encodeURIComponent(params.chapterId)}`;
+      let url = `/api/chapters/pages/${params.provider}/${encodeURIComponent(chapterId)}`;
       if (sourceUrl) url += `?source=${encodeURIComponent(sourceUrl)}`;
 
       const response = await apiFetch(url);
+      if (response.status === 404) throw new Error("Halaman tidak ditemukan (404)");
+      
       const data = await response.json();
       if (data.error) throw new Error(data.error);
       setImages(data.pages || []);
@@ -74,7 +87,7 @@ function Reader() {
           body: JSON.stringify({
             manga_id: mangaId(),
             chapter_id: params.chapterId,
-            chapter_title: params.title || `Chapter ${params.chapterId}`,
+            chapter_title: searchParams.title ? decodeURIComponent(searchParams.title) : `Chapter ${params.chapterId}`,
             last_page: pageNum,
             total_pages: images().length,
           }),
@@ -85,8 +98,6 @@ function Reader() {
       }
     }, 1500);
   };
-
-  onMount(fetchChapter);
 
   // Keyboard navigation
   const handleKeyDown = (e) => {
@@ -110,7 +121,6 @@ function Reader() {
     if (targetChapter) {
       const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : "";
       navigate(`/read/${params.provider}/${encodeURIComponent(targetChapter.id)}?source=${encodeURIComponent(sourceUrl)}&title=${encodeURIComponent(targetChapter.title)}`);
-      fetchChapter();
     }
   };
 
@@ -139,9 +149,6 @@ function Reader() {
               <img 
                 src={getProxyUrl(src)} 
                 alt={`Halaman ${index() + 1}`}
-                onLoad={() => {
-                   // We'll track visibility with IntersectionObserver
-                }}
                 ref={(el) => {
                   const observer = new IntersectionObserver((entries) => {
                     if (entries[0].isIntersecting) {
@@ -162,7 +169,7 @@ function Reader() {
         <div class="controls-top">
           <button onClick={() => navigate(-1)} class="control-btn">← Back</button>
           <div class="chapter-info">
-            <span class="manga-title-small">{params.title}</span>
+            <span class="manga-title-small">{decodeURIComponent(searchParams.title || "Reading...")}</span>
             <span class="page-count">{currentPage()} / {images().length}</span>
           </div>
         </div>
