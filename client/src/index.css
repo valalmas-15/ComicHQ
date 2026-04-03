@@ -511,16 +511,8 @@ input:focus {
 
 /* 📖 Reader Layout */
 .reader-container {
-  position: relative;
-  background: #000;
-  min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
-  z-index: 10;
-  touch-action: pan-y;
-}
-
-.reader-content {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -975,126 +967,109 @@ input:focus {
   border-color: var(--primary);
   transform: translateX(5px);
 }
-/* Auth Page Styles (Premium) */
+/* Auth Page Styles (Premium Overhaul) */
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background-color: #020617;
+  background: #020617; /* Slate-950 */
   padding: 1.5rem;
+  position: relative;
 }
 
 .auth-container {
   width: 100%;
-  max-width: 420px;
-  position: relative;
-  z-index: 10;
-  animation: authFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes authFadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  max-width: 400px;
 }
 
 .auth-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 2.5rem;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 2.5rem 2rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: authFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 2rem;
+@keyframes authFadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.auth-title {
-  font-size: 1.8rem;
+.auth-header h1 {
+  font-size: 2rem;
   font-weight: 800;
-  margin: 0;
-  background: linear-gradient(to bottom right, #fff, #94a3b8);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #fff;
 }
 
 .auth-subtitle {
+  text-align: center;
   color: var(--text-muted);
   font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.auth-error-box {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+  margin-bottom: 2.5rem;
 }
 
 .auth-form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .auth-form-group label {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-  margin-left: 0.25rem;
+  color: #94a3b8;
+  margin-bottom: 0.6rem;
+  padding-left: 0.25rem;
 }
 
 .input-wrapper {
   position: relative;
+  width: 100%;
 }
 
 .input-wrapper input {
-  padding-right: 3rem !important; /* Make room for icon/toggle */
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0.85rem 3.5rem 0.85rem 1.25rem !important; /* Extra right padding for icon */
+  border-radius: 14px !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease;
 }
 
-.input-icon {
+.input-wrapper input:focus {
+  border-color: var(--primary) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+}
+
+.input-icon, .password-toggle {
   position: absolute;
   right: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  opacity: 0.5;
   pointer-events: none;
+  font-size: 1.2rem;
+  opacity: 0.5;
+  color: #fff;
 }
 
 .password-toggle {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
+  pointer-events: auto;
+  cursor: pointer;
   background: none;
   border: none;
-  color: white;
-  opacity: 0.5;
-  cursor: pointer;
-  padding: 0.5rem;
-  transition: opacity 0.2s;
-  font-size: 1.1rem;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .password-toggle:hover {
@@ -1104,7 +1079,7 @@ input:focus {
 .auth-submit-btn {
   width: 100%;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   border: none;
@@ -1113,39 +1088,18 @@ input:focus {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
 }
 
 .auth-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
   filter: brightness(1.1);
-}
-
-.auth-submit-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.auth-submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 0.8s linear infinite;
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   font-size: 0.9rem;
   color: var(--text-muted);
 }
@@ -1154,12 +1108,11 @@ input:focus {
   color: var(--primary);
   text-decoration: none;
   font-weight: 700;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
 .auth-link:hover {
   color: var(--accent);
-  text-decoration: underline;
 }
 
 .animate-slide-down {

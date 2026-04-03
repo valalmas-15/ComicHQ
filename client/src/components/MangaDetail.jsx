@@ -248,13 +248,14 @@ function MangaDetail() {
 
         <For each={chapters()}>
           {(chapter) => {
-            // Normalize IDs to handle different mirror domains (asuratoon vs asuracomic)
+            // Normalize IDs to handle case-sensitivity and mirror differences
             const normalizeId = (id) => {
               if (!id) return "";
               try {
-                const parts = id.split('/').filter(Boolean);
-                return parts[parts.length - 1]; // Return the slug part
-              } catch(e) { return id; }
+                const clean = id.toString().toLowerCase().trim().split('?')[0]; // Remove query params
+                const parts = clean.split('/').filter(Boolean);
+                return parts[parts.length - 1]; // Return the base slug
+              } catch(e) { return id.toString().toLowerCase().trim(); }
             };
 
             const chSlug = normalizeId(chapter.id);

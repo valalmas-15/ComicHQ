@@ -204,15 +204,19 @@ function Reader() {
       </div>
 
       {/* Reader Controls */}
-      <div class={`reader-controls ${showControls() ? "visible" : ""}`}>
-        <div class="controls-top">
-          <button onClick={() => navigate(-1)} class="control-btn">← Back</button>
-          <div class="chapter-info">
-            <span class="manga-title-small">{decodeURIComponent(searchParams.title || "Reading...")}</span>
-            <span class="page-count">{currentPage()} / {images().length}</span>
-          </div>
+      <div class={`reader-controls top ${showControls() ? "visible" : ""}`} style="z-index: 1000 !important;">
+        <div class="reader-nav-content">
+          <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} class="reader-back-btn">
+             <i>←</i> Kembali
+          </button>
+          <h2 class="reader-title-text" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {decodeURIComponent(searchParams.title || "Reading...")}
+          </h2>
+          <div style="width: 40px;"></div> {/* Spacer for balance */}
         </div>
+      </div>
 
+      <div class={`reader-controls bottom ${showControls() ? "visible" : ""}`} style="z-index: 1000 !important;">
         <div class="controls-bottom">
           <button 
              onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
