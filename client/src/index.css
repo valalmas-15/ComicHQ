@@ -21,7 +21,7 @@ html, body {
   right: 0;
   height: env(safe-area-inset-top, 0px);
   background: black;
-  z-index: 10000;
+  z-index: 5000; /* Lower z-index so Navbar is definitely on top */
   pointer-events: none;
 }
 
@@ -1404,7 +1404,7 @@ input:focus {
   left: 0;
   right: 0;
   height: 60px;
-  display: flex;
+  display: none; /* Hide by default */
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -1415,6 +1415,12 @@ input:focus {
   z-index: 11000;
   padding-top: env(safe-area-inset-top, 0px);
   pointer-events: none;
+}
+
+.ptr-indicator.pulling, 
+.ptr-indicator.ready, 
+.ptr-indicator.loading {
+  display: flex; /* Only show when needed */
 }
 
 .ptr-indicator i {
@@ -1449,4 +1455,175 @@ input:focus {
   text-transform: uppercase;
   letter-spacing: 1.5px;
   border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 🌐 Modern Sources Grid */
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.source-card {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.source-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.source-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.source-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.source-status-ring {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.healthy .source-status-ring {
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+}
+
+.broken .source-status-ring {
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+}
+
+.source-card-body {
+  flex: 1;
+}
+
+.source-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.source-url-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.error-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+
+.error-detail-text {
+  font-size: 0.75rem;
+  color: #fca5a5;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.source-card-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.source-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-value {
+  font-size: 0.75rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.source-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ping-action-btn, .visit-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.ping-action-btn:hover:not(:disabled) {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.1);
+}
+
+.visit-action-btn:hover {
+  background: #334155;
+  transform: scale(1.1);
+}
+
+.ping-action-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }

@@ -81,69 +81,59 @@ function Sources() {
         <div style="text-align: center; color: var(--danger);">{error()}</div>
       </Show>
 
-      <div class="history-list">
+      <div class="sources-grid">
         <For each={sources()}>
           {(source) => (
-            <div
-              class="history-item"
-              style="display: flex; flex-direction: column; gap: 0.5rem;"
-            >
-              <div class="flex justify-between items-center w-full">
-                <h3 class="m-0 text-xl">{source.name}</h3>
-                <Show
-                  when={source.is_broken === 1 || source.is_broken === true}
-                >
-                  <div class="status-badge status-error">
-                    <span>⚠️</span>
-                    <span class="font-bold text-sm">ERROR</span>
+            <div class={`source-card ${source.is_broken ? 'broken' : 'healthy'}`}>
+              <div class="source-card-header">
+                <div class="source-icon">
+                  {source.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="source-status-ring"></div>
+              </div>
+
+              <div class="source-card-body">
+                <h3 class="source-title">{source.name}</h3>
+                <p class="source-url-text">{source.url || 'No URL'}</p>
+                
+                <Show when={source.is_broken}>
+                  <div class="error-pill">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Issues Detected</span>
                   </div>
-                </Show>
-                <Show
-                  when={source.is_broken === 0 || source.is_broken === false}
-                >
-                  <div class="status-badge status-healthy">
-                    <span>✅</span>
-                    <span class="font-bold text-sm">SEHAT</span>
-                  </div>
+                  <p class="error-detail-text">{source.last_error || 'Unknown error'}</p>
                 </Show>
               </div>
 
-              <div class="flex flex-col gap-1 mt-2">
-                <Show when={source.last_error && source.is_broken}>
-                  <p class="m-0 text-red-400 text-sm font-mono bg-black-30 p-2 rounded-md">
-                    {source.last_error}
-                  </p>
-                </Show>
+              <div class="source-card-footer">
+                <div class="source-meta">
+                  <span class="meta-label">Last Ping:</span>
+                  <span class="meta-value">
+                    {source.updated_at ? formatRelativeTime(source.updated_at) : "N/A"}
+                  </span>
+                </div>
 
-                <p class="m-0 text-muted text-xs">
-                  Terakhir dicek:{" "}
-                  {source.updated_at
-                    ? formatRelativeTime(source.updated_at)
-                    : "Belum pernah dipakai"}
-                </p>
-              </div>
-
-              <div class="flex gap-2 justify-end mt-4 pt-4 border-t border-white-10">
-                <Show when={source.url}>
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn-secondary btn-sm inline-flex items-center gap-1"
+                <div class="source-actions">
+                  <button
+                    onClick={() => pingSource(source.name)}
+                    disabled={pingingSingle()[source.name] || pinging()}
+                    class="ping-action-btn"
+                    title="Test Latency"
                   >
-                    🌐 Kunjungi Web
-                  </a>
-                </Show>
-                <button
-                  onClick={() => pingSource(source.name)}
-                  disabled={pingingSingle()[source.name] || pinging()}
-                  class="btn-primary btn-sm inline-flex items-center gap-1"
-                >
-                  📡{" "}
-                  {pingingSingle()[source.name]
-                    ? "Mengetes..."
-                    : "Tes Ping Individual"}
-                </button>
+                    <i class={`fas ${pingingSingle()[source.name] ? 'fa-spinner fa-spin' : 'fa-signal'}`}></i>
+                  </button>
+                  <Show when={source.url}>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="visit-action-btn"
+                      title="Visit Website"
+                    >
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  </Show>
+                </div>
               </div>
             </div>
           )}
