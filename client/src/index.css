@@ -27,7 +27,7 @@ html {
   max-width: 1400px;
   margin: 0 auto;
   padding: 1rem;
-  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px) + 10px);
   transition: all 0.3s ease;
 }
 
@@ -468,10 +468,10 @@ input:focus {
   background: rgba(13, 17, 23, 0.95);
   backdrop-filter: blur(12px);
   height: auto;
-  min-height: 60px;
+  min-height: 70px;
   display: flex;
   align-items: center;
-  padding: env(safe-area-inset-top, 0px) 1rem 0.5rem 1rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 1rem 0.5rem 1rem;
   z-index: 1000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
