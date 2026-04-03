@@ -343,9 +343,14 @@ app.delete("/api/library/:id", authenticateToken, (req, res) => {
 });
 
 app.get("/api/read-chapters/:manga_id", authenticateToken, (req, res) => {
-  db.all("SELECT chapter_id FROM read_chapters WHERE user_id = ? AND manga_id = ?", [req.user.id, req.params.manga_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Failed to fetch" });
-    res.json(rows.map(r => r.chapter_id));
+  const mangaId = req.params.manga_id;
+  console.log(`🔍 [Debug] Checking read chapters for Manga ID: ${mangaId}`);
+  
+  db.all("SELECT chapter_id FROM read_chapters WHERE user_id = ? AND manga_id = ?", [req.user.id, mangaId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const ids = rows.map(r => r.chapter_id);
+    console.log(`✅ [Debug] Found ${ids.length} read chapters for Manga ID: ${mangaId}`);
+    res.json(ids);
   });
 });
 

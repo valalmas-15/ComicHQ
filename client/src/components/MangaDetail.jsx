@@ -252,14 +252,19 @@ function MangaDetail() {
             const normalizeId = (id) => {
               if (!id) return "";
               try {
-                const clean = id.toString().toLowerCase().trim().split('?')[0]; // Remove query params
+                // Remove everything except the last part of the path (the slug)
+                const clean = id.toString().toLowerCase().trim().split('?')[0]; 
                 const parts = clean.split('/').filter(Boolean);
-                return parts[parts.length - 1]; // Return the base slug
+                return parts[parts.length - 1] || clean;
               } catch(e) { return id.toString().toLowerCase().trim(); }
             };
 
             const chSlug = normalizeId(chapter.id);
-            const isFinished = readChapterIds().some(id => normalizeId(id) === chSlug);
+            // Flexible matching: check for exact match OR if one slug contains another
+            const isFinished = readChapterIds().some(id => {
+              const dbSlug = normalizeId(id);
+              return dbSlug === chSlug || (dbSlug.length > 3 && chSlug.includes(dbSlug)) || (chSlug.length > 3 && dbSlug.includes(chSlug));
+            });
             const isLast = normalizeId(lastRead()?.chapter_id) === chSlug;
 
             return (

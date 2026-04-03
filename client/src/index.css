@@ -621,10 +621,37 @@ input:focus {
   cursor: not-allowed;
 }
 
-.reader-btn.primary {
-  background: var(--primary);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+.chapter-dropdown {
+  background: rgba(45, 55, 72, 0.4);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.chapter-dropdown:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(45, 55, 72, 0.6);
+}
+
+.chapter-dropdown option {
+  background: #1a202c;
+  color: white;
+  padding: 10px;
 }
 
 /* Floating Page Badge */
