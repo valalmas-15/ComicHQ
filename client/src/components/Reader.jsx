@@ -28,44 +28,39 @@ function Reader() {
     if (!chapterUrl || chapterUrl === "undefined") return;
     
     setLoading(true);
-    setError(null);
+    setError("");
     try {
-      const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : null;
-      const chUrl = decodeURIComponent(chapterUrl);
+      const sourceUrl = searchParams.source;
+      const chapterUrl = params.url;
       
-      // Fixed: Server uses /api/pages?url=...&provider=...
-      const response = await apiFetch(`/api/pages?url=${encodeURIComponent(chUrl)}&provider=${params.provider}`);
-      if (response.status === 404) throw new Error("Halaman tidak ditemukan (404)");
+      if (!sourceUrl || !chapterUrl) throw new Error("Missing source or chapter data");
+
+      // ⚡ Parallel fetch for speed
+      const [mangaRes, chaptersRes, pagesRes] = await Promise.all([
+        apiFetch(`/api/manga/by-source?url=${encodeURIComponent(sourceUrl)}`),
+        apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`),
+        apiFetch(`/api/pages?url=${encodeURIComponent(chapterUrl)}&provider=${params.provider}`)
+      ]);
+
+      const [mangaData, chaptersData, pagesData] = await Promise.all([
+        mangaRes.json(),
+        chaptersRes.json(),
+        pagesRes.json()
+      ]);
+
+      if (mangaData && mangaData.id) setMangaId(mangaData.id);
+      setChapters(Array.isArray(chaptersData) ? chaptersData : []);
       
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      
-      // Fixed: Server returns array directly
-      setImages(Array.isArray(data) ? data : []);
-      
-      // Also fetch manga ID and chapter list for navigation
-      if (sourceUrl) {
-         const libRes = await apiFetch(`/api/library`);
-         const lib = await libRes.json();
-         const manga = lib.find(m => m.source_id === sourceUrl);
-         
-         if (manga) {
-            setMangaId(manga.id);
-            // Fixed: Server uses /api/chapters?url=...&provider=...
-            const chaptersRes = await apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`);
-            const chaptersData = await chaptersRes.json();
-            setChapters(chaptersData);
-         } else {
-            // Fallback: check general manga table (assuming endpoint exists or handles it)
-            // Note: server currently doesn't have /api/manga/by-source; this might be a placeholder
-            // For now, let's just use the provider data we have
-            const chaptersRes = await apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`);
-            const chaptersData = await chaptersRes.json();
-            setChapters(chaptersData);
-         }
+      if (Array.isArray(pagesData)) {
+        setImages(pagesData);
+      } else if (pagesData.error) {
+        throw new Error(pagesData.error);
+      } else {
+        setImages([]);
       }
+
     } catch (err) {
-      console.error(err);
+      console.error("Reader Error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
