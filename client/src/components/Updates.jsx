@@ -85,6 +85,7 @@ function Updates() {
                     loading="lazy"
                     onerror={(e) => { e.target.src = "https://dummyimage.com/180x270?text=No+Image"; }}
                   />
+                  <span class="provider-tag">{manga.provider}</span>
                   <Show when={manga.unread_count > 0}>
                     <div class="unread-count-badge-mini">{manga.unread_count}</div>
                   </Show>
@@ -102,7 +103,6 @@ function Updates() {
                 <div class="history-details">
                   <div class="history-header">
                     <h3 class="update-manga-title">{manga.title}</h3>
-                    <span class="provider-tag">{manga.provider}</span>
                   </div>
                   
                   <div class="latest-chapter-box" style={{ "margin-top": "4px" }}>
@@ -113,7 +113,10 @@ function Updates() {
                   </div>
                   
                   <div class="history-meta" style={{ "margin-top": "auto" }}>
-                     <span class="time-ago">{formatRelativeTime(manga.updated_at)}</span>
+                     <span class="time-ago">
+                       <i class="far fa-clock mr-1" style={{ "font-size": "0.8rem" }}></i>
+                       {manga.latest_chapter_date || formatRelativeTime(manga.updated_at)}
+                     </span>
                   </div>
                 </div>
               </A>

@@ -2095,4 +2095,79 @@ body:has(.reader-container) {
 .ping-action-btn:disabled {
   opacity: 0.5;
   cursor: wait;
+}/* 📱 Compact Updates List Styles */
+.updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.update-card-item {
+  height: 100px !important;
+  margin-bottom: 0 !important;
+}
+
+.update-card-item .history-poster {
+  width: 70px !important;
+  min-width: 70px !important;
+}
+
+.update-card-item .history-details {
+  padding: 8px 12px !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+
+.update-card-item .history-header {
+  margin-bottom: 2px !important;
+}
+
+.update-card-item .update-manga-title {
+  font-size: 0.95rem !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.update-card-item .latest-chapter-box {
+  margin-top: 0 !important;
+}
+
+.update-card-item .latest-chapter-name {
+  font-size: 0.8rem !important;
+}
+
+.update-card-item .update-label {
+  font-size: 0.65rem !important;
+}
+
+.update-card-item .history-meta {
+  margin-top: 2px !important;
+  margin-bottom: 0 !important;
+}
+
+.update-card-item .provider-tag {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  font-size: 0.6rem !important;
+  padding: 2px 4px !important;
+  z-index: 2;
+}
+
+.unread-count-badge-mini {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  z-index: 2;
 }

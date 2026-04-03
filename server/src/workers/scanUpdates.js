@@ -26,11 +26,11 @@ async function scanUpdates() {
 
         if (latestCount > (manga.last_chapter_count || 0)) {
           const latestChapter = chapters[0]; // Most providers have newest at top
-          console.log(`✨ New chapters for ${manga.title}: ${latestChapter.title}`);
+          console.log(`✨ New chapters for ${manga.title}: ${latestChapter.title} (${latestChapter.date || 'Update'})`);
           
           db.run(
-            'UPDATE manga_library SET last_chapter_count = ?, latest_chapter_title = ?, latest_chapter_id = ?, has_update = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [latestCount, latestChapter.title, latestChapter.id, manga.id]
+            'UPDATE manga_library SET last_chapter_count = ?, latest_chapter_title = ?, latest_chapter_id = ?, latest_chapter_date = ?, has_update = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [latestCount, latestChapter.title, latestChapter.id, latestChapter.date || 'New', manga.id]
           );
         }
       } catch (err) {
