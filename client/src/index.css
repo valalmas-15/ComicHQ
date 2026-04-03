@@ -2,9 +2,14 @@
   --primary: #6366f1;
   --bg: #0f172a;
   --card-bg: #1e293b;
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
   --accent: #8b5cf6;
+  --text: #ffffff;
+  --text-muted: #a1a1aa;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 html, body {
@@ -12,6 +17,7 @@ html, body {
   width: 100%;
   position: relative;
   background-color: var(--bg);
+  color: var(--text);
 }
 
 .status-bar-sim {

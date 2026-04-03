@@ -61,6 +61,11 @@ export default function PullToRefresh(props) {
     setPullDistance(0);
   };
 
+  const handleTouchCancel = () => {
+    setIsPulling(false);
+    setPullDistance(0);
+  };
+
   const triggerRefresh = async () => {
     setIsRefreshing(true);
     
@@ -87,15 +92,17 @@ export default function PullToRefresh(props) {
   };
 
   onMount(() => {
-    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchCancel, { passive: true });
   });
 
   onCleanup(() => {
     window.removeEventListener("touchstart", handleTouchStart);
     window.removeEventListener("touchmove", handleTouchMove);
     window.removeEventListener("touchend", handleTouchEnd);
+    window.removeEventListener("touchcancel", handleTouchCancel);
   });
 
   const getStatus = () => {

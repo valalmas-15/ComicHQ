@@ -1,5 +1,5 @@
 /** @jsxImportSource solid-js */
-import { createSignal, onMount, For, Show } from "solid-js";
+import { createSignal, onMount, For, Show, onCleanup } from "solid-js";
 import { A } from "@solidjs/router";
 import { apiFetch, API_BASE } from "../utils/api";
 import { formatRelativeTime } from "../utils/helpers";
