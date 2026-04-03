@@ -370,7 +370,7 @@ app.get("/api/updates", authenticateToken, (req, res) => {
 
 // --- SPA FALLBACK ---
 app.use(express.static(path.join(__dirname, "dist")));
-app.get("*", (req, res) => {
+app.get(/(.*)/, (req, res) => {
   // Use "*" for standard catch-all in modern Express
   const indexPath = path.join(__dirname, "dist", "index.html");
   if (require("fs").existsSync(indexPath)) {
