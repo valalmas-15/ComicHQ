@@ -152,10 +152,13 @@ function Reader() {
 
   const loadNextChapterAutomatically = async () => {
     if (isFetching()) return;
-    const nextChapter = getNextChapterData();
-    if (nextChapter && !chapterList().find(c => normalizeId(c.chapterId) === normalizeId(nextChapter.id))) {
-      setIsFetching(true);
-      await loadChapter(nextChapter.id, nextChapter.title);
+    try {
+      const nextChapter = getNextChapterData();
+      if (nextChapter && !chapterList().find(c => c.chapterId === nextChapter.id)) {
+        setIsFetching(true);
+        await loadChapter(nextChapter.id, nextChapter.title);
+      }
+    } finally {
       setIsFetching(false);
     }
   };
