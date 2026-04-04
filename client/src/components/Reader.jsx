@@ -7,57 +7,49 @@ function Reader() {
   const params = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [images, setImages] = createSignal([]);
+  
+  // 📜 Infinite Scroll State
+  const [chapterList, setChapterList] = createSignal([]); // [{ chapterId, title, images: [], loaded: false }]
+  const [availableChapters, setAvailableChapters] = createSignal([]); // Full list from API
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal(null);
   const [mangaId, setMangaId] = createSignal(null);
-  const [chapters, setChapters] = createSignal([]);
+  const [showControls, setShowControls] = createSignal(true);
+  const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ title: "", index: 0, totalPages: 0 });
   const [currentPage, setCurrentPage] = createSignal(1);
-  const [showControls, setShowControls] = createSignal(false);
 
+  // Initial Load
   createEffect(() => {
     const chapterUrl = params.url;
     const provider = params.provider;
     if (chapterUrl && chapterUrl !== "undefined" && provider) {
-      fetchChapter();
+      resetAndFetchInitial();
     }
   });
 
-  const fetchChapter = async () => {
+  const resetAndFetchInitial = async () => {
     const chapterUrl = params.url;
-    if (!chapterUrl || chapterUrl === "undefined") return;
-    
+    const sourceUrl = searchParams.source;
+    if (!chapterUrl || !sourceUrl) return;
+
     setLoading(true);
-    setError("");
+    setError(null);
     try {
-      const sourceUrl = searchParams.source;
-      const chapterUrl = params.url;
-      
-      if (!sourceUrl || !chapterUrl) throw new Error("Missing source or chapter data");
-
-      // ⚡ Parallel fetch for speed
-      const [mangaRes, chaptersRes, pagesRes] = await Promise.all([
+      // 1. Get Manga & Available Chapters List
+      const [mangaRes, chaptersRes] = await Promise.all([
         apiFetch(`/api/manga/by-source?url=${encodeURIComponent(sourceUrl)}`),
-        apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`),
-        apiFetch(`/api/pages?url=${encodeURIComponent(chapterUrl)}&provider=${params.provider}`)
+        apiFetch(`/api/chapters?url=${encodeURIComponent(sourceUrl)}&provider=${params.provider}`)
       ]);
 
-      const [mangaData, chaptersData, pagesData] = await Promise.all([
-        mangaRes.json(),
-        chaptersRes.json(),
-        pagesRes.json()
-      ]);
+      const mangaData = await mangaRes.json();
+      const chaptersData = await chaptersRes.json();
 
-      if (mangaData && mangaData.id) setMangaId(mangaData.id);
-      setChapters(Array.isArray(chaptersData) ? chaptersData : []);
-      
-      if (Array.isArray(pagesData)) {
-        setImages(pagesData);
-      } else if (pagesData.error) {
-        throw new Error(pagesData.error);
-      } else {
-        setImages([]);
-      }
+      if (mangaData?.id) setMangaId(mangaData.id);
+      setAvailableChapters(Array.isArray(chaptersData) ? chaptersData : []);
+
+      // 2. Load the Initial Chapter
+      const initialChapterTitle = searchParams.title ? decodeURIComponent(searchParams.title) : `Chapter ${params.url}`;
+      await loadChapter(params.url, initialChapterTitle, true);
 
     } catch (err) {
       console.error("Reader Error:", err);
@@ -65,170 +57,99 @@ function Reader() {
     } finally {
       setLoading(false);
       window.scrollTo(0, 0);
-      setCurrentPage(1);
     }
   };
 
-  let historyTimeout;
-  const updateHistory = async (pageNum) => {
-    if (!mangaId()) return;
+  const loadChapter = async (chapterId, title, isInitial = false) => {
+    try {
+      const pagesRes = await apiFetch(`/api/pages?url=${encodeURIComponent(chapterId)}&provider=${params.provider}`);
+      const pagesData = await pagesRes.json();
 
-    if (historyTimeout) clearTimeout(historyTimeout);
-    historyTimeout = setTimeout(async () => {
-      try {
-        await apiFetch("/api/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            manga_id: mangaId(),
-            chapter_id: params.url,
-            chapter_title: searchParams.title ? decodeURIComponent(searchParams.title) : `Chapter ${params.url}`,
-            last_page: pageNum,
-            total_pages: images().length,
-          }),
-        });
-        window.dispatchEvent(new CustomEvent("refresh-requested"));
-      } catch (err) {
-        console.error("Failed to update history:", err);
+      if (Array.isArray(pagesData)) {
+        const newChapterObj = { chapterId, title, images: pagesData, loaded: true };
+        if (isInitial) {
+          setChapterList([newChapterObj]);
+          setCurrentChapterInfo({ title, index: 0, totalPages: pagesData.length });
+        } else {
+          setChapterList(prev => [...prev, newChapterObj]);
+        }
       }
-    }, 1500);
-  };
-
-  // Scroll detection for auto-hiding controls
-  let lastScrollY = 0;
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowLeft") {
-      navigateChapter("prev");
-    } else if (e.key === "ArrowRight") {
-      navigateChapter("next");
+    } catch (err) {
+      console.error("Failed to load more chapters:", err);
     }
   };
 
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
-    
-    // Hide controls when scrolling down, show when scrolling up
-    if (currentScrollY > lastScrollY && currentScrollY > 100) {
-      if (showControls()) setShowControls(false);
-    } else if (currentScrollY < lastScrollY) {
-      if (!showControls()) setShowControls(true);
+  const loadNextChapterAutomatically = async () => {
+    const currentList = chapterList();
+    if (currentList.length === 0) return;
+
+    const lastLoadedId = currentList[currentList.length - 1].chapterId;
+    const allChapters = availableChapters();
+    const currentIndex = allChapters.findIndex(c => c.id === lastLoadedId);
+
+    // Chapters are usually descending, so index - 1 is "Next"
+    const nextChapter = allChapters[currentIndex - 1];
+    if (nextChapter && !currentList.find(c => c.chapterId === nextChapter.id)) {
+      await loadChapter(nextChapter.id, nextChapter.title);
     }
-    
-    lastScrollY = currentScrollY;
   };
 
-  onMount(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    // Show controls initially
-    setShowControls(true);
-  });
-  
-  onCleanup(() => {
-    window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("scroll", handleScroll);
-  });
-
-  const navigateChapter = (dir) => {
-    const currentIndex = chapters().findIndex(c => c.id === params.url);
-    if (currentIndex === -1) return;
-
-    let targetChapter;
-    if (dir === "next") {
-      targetChapter = chapters()[currentIndex - 1]; // Chapters usually descending
-    } else {
-      targetChapter = chapters()[currentIndex + 1];
-    }
-
-    if (targetChapter) {
-      const sourceUrl = searchParams.source ? decodeURIComponent(searchParams.source) : "";
-      navigate(`/read/${params.provider}/${encodeURIComponent(targetChapter.id)}?source=${encodeURIComponent(sourceUrl)}&title=${encodeURIComponent(targetChapter.title)}`);
+  const updateHistory = async (chapterId, title, pageNum, totalPages) => {
+    if (!mangaId()) return;
+    try {
+      await apiFetch("/api/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          manga_id: mangaId(),
+          chapter_id: chapterId,
+          chapter_title: title,
+          last_page: pageNum,
+          total_pages: totalPages,
+        }),
+      });
+      // Silent update URL to match scroll position
+      const sourceUrl = searchParams.source;
+      window.history.replaceState(null, "", `/read/${params.provider}/${encodeURIComponent(chapterId)}?source=${encodeURIComponent(sourceUrl)}&title=${encodeURIComponent(title)}`);
+    } catch (err) {
+      console.error("Failed to update history:", err);
     }
   };
 
   const getProxyUrl = (url) => {
     if (!url) return "";
-    // Force relative path to use Vite proxy
     return `/api/proxy?url=${encodeURIComponent(url)}`;
   };
 
   return (
     <div class="reader-container">
-      {/* 1. Header Navigasi (Pixel-Perfect Global Style) */}
+      {/* 1. Dynamic Header */}
       <div 
         class={`reader-controls top ${showControls() ? "visible" : ""}`} 
-        style={{ "z-index": "10000 !important", "pointer-events": showControls() ? "auto" : "none" }}
-        onClick={(e) => e.stopPropagation()}
+        style={{ "z-index": "100", "pointer-events": showControls() ? "auto" : "none" }}
       >
         <div class="reader-nav-content">
           <button 
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                navigate(`/manga/${params.provider}/${encodeURIComponent(searchParams.source)}`); 
-            }} 
+            onClick={() => navigate(`/manga/${params.provider}/${encodeURIComponent(searchParams.source)}`)} 
             class="reader-mini-btn"
           >
-             <i>←</i>
+             <i class="fas fa-arrow-left"></i>
           </button>
           
-          <select 
-            class="chapter-dropdown-global-style"
-            value={params.url}
-            onChange={(e) => {
-               const target = chapters().find(c => c.id === e.target.value);
-               if (target) {
-                 navigate(`/read/${params.provider}/${encodeURIComponent(target.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(target.title)}`);
-               }
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <For each={chapters()}>
-              {(chapter) => (
-                <option value={chapter.id} selected={chapter.id === params.url}>
-                  {chapter.title}
-                </option>
-              )}
-            </For>
-          </select>
-          
-          <div style={{ "font-size": "0.75rem", "opacity": "0.5", "font-weight": "bold", "white-space": "nowrap", "padding": "0 8px", "font-family": "monospace" }}>
-            {currentPage()} / {images().length}
+          <div class="reader-current-info">
+             <span class="ch-title-scroll">{currentChapterInfo().title}</span>
+             <span class="page-counter-scroll">{currentPage()} / {currentChapterInfo().totalPages}</span>
           </div>
 
           <div class="reader-nav-icons">
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigateChapter("prev"); }} 
-              class="reader-icon-btn"
-              disabled={(() => {
-                const idx = chapters().findIndex(c => {
-                  const normC = (c.id || "").split('?')[0].toLowerCase();
-                  const normP = (params.url || "").split('?')[0].toLowerCase();
-                  return normC === normP || normC.includes(normP) || normP.includes(normC);
-                });
-                return idx === -1 || idx === chapters().length - 1;
-              })()}
-            >
-              <i>«</i>
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
-              class="reader-icon-btn primary"
-              disabled={(() => {
-                const idx = chapters().findIndex(c => {
-                  const normC = (c.id || "").split('?')[0].toLowerCase();
-                  const normP = (params.url || "").split('?')[0].toLowerCase();
-                  return normC === normP || normC.includes(normP) || normP.includes(normC);
-                });
-                return idx === -1 || idx === 0;
-              })()}
-            >
-              <i>»</i>
-            </button>
+             <button class="reader-icon-btn" onClick={() => setShowControls(false)}>
+                <i class="fas fa-expand"></i>
+             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Loading State Utama */}
+      {/* 2. Loading State */}
       <Show when={loading()}>
         <div class="reader-loading-overlay">
           <div class="spinner-container">
@@ -238,89 +159,142 @@ function Reader() {
         </div>
       </Show>
 
-      {/* 3. Area Baca */}
-      <div class="reader-view-area" onClick={() => setShowControls(!showControls())} style={{ "position": "relative", "z-index": "1" }}>
+      {/* 3. Infinite Stream Area */}
+      <div class="reader-view-area" onClick={() => setShowControls(!showControls())}>
         <div class="reader-content">
           <div class="reader-header-spacer"></div>
           
-          <For each={images()}>
-            {(src, index) => {
-              const [loaded, setLoaded] = createSignal(false);
-              return (
-                <div class="image-wrapper" style={{ "min-height": "400px", "background": "#000", "position": "relative" }}>
-                  <Show when={!loaded()}>
-                    <div class="image-loader">
-                      <div class="spinner"></div>
-                      <span>Hal {index() + 1} memuat...</span>
-                    </div>
-                  </Show>
-                  <img
-                    src={getProxyUrl(src)}
-                    alt={`Page ${index() + 1}`}
-                    classList={{ "reader-image": true, "loaded": loaded() }}
-                    onLoad={() => setLoaded(true)}
-                    onError={(e) => {
-                      console.error(`❌ [Reader] Page ${index() + 1} Failed: ${src}`);
-                      const el = e.target;
-                      el.style.display = "none";
-                      
-                      // Show specific error overlay with retry button
-                      const parent = el.parentElement;
-                      if (!parent.querySelector(".retry-overlay")) {
-                        const overlay = document.createElement("div");
-                        overlay.className = "retry-overlay";
-                        overlay.style = "position: absolute; top:0; left:0; width:100%; height:100%; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); gap:15px; color:#fff;";
-                        overlay.innerHTML = `
-                          <span style="font-size:1.5rem;">⚠️</span>
-                          <p style="font-size:0.85rem;">Gambar Hal. ${index() + 1} Gagal Dimuat</p>
-                          <button class="retry-btn-styled" style="padding:10px 20px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:700; cursor:pointer;">Coba Lagi</button>
-                        `;
-                        overlay.querySelector(".retry-btn-styled").onclick = () => {
-                           overlay.remove();
-                           el.style.display = "block";
-                           el.src = getProxyUrl(src) + "&retry=" + Date.now();
-                        };
-                        parent.appendChild(overlay);
-                      }
-                    }}
-                    style={{ 
-                      "display": "block",
-                      "width": "100%",
-                      "height": "auto",
-                      "min-height": "400px",
-                      "object-fit": "contain"
-                    }}
-                    ref={(el) => {
-                      const observer = new IntersectionObserver((entries) => {
-                        if (entries[0].isIntersecting) {
-                          setCurrentPage(index() + 1);
-                          updateHistory(index() + 1);
-                        }
-                      }, { threshold: 0.1 });
-                      observer.observe(el);
-                    }}
-                  />
+          <For each={chapterList()}>
+            {(chapter, chIndex) => (
+              <div class="chapter-block">
+                <div class="chapter-divider-label">
+                   <span>{chapter.title}</span>
                 </div>
-              );
-            }}
+                
+                <For each={chapter.images}>
+                  {(src, imgIndex) => {
+                    const [loaded, setLoaded] = createSignal(false);
+                    return (
+                      <div class="image-wrapper" style={{ "min-height": "400px", "background": "#000", "position": "relative" }}>
+                        <Show when={!loaded()}>
+                          <div class="image-loader">
+                            <div class="spinner"></div>
+                            <span>Pemuatan Halaman {imgIndex() + 1}...</span>
+                          </div>
+                        </Show>
+                        <img
+                          src={getProxyUrl(src)}
+                          alt={`Page ${imgIndex() + 1}`}
+                          classList={{ "reader-image": true, "loaded": loaded() }}
+                          onLoad={() => setLoaded(true)}
+                          onError={(e) => {
+                            const el = e.target;
+                            el.style.display = "none";
+                            const parent = el.parentElement;
+                            if (!parent.querySelector(".retry-overlay")) {
+                              const overlay = document.createElement("div");
+                              overlay.className = "retry-overlay";
+                              overlay.style = "position: absolute; top:0; left:0; width:100%; height:100%; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); gap:15px; color:#fff;";
+                              overlay.innerHTML = `
+                                <span style="font-size:1.5rem;">⚠️</span>
+                                <p style="font-size:0.85rem;">Gambar Gagal Dimuat</p>
+                                <button class="btn-retry-fix" style="padding:10px 20px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:700; cursor:pointer;">Coba Lagi</button>
+                              `;
+                              overlay.querySelector(".btn-retry-fix").onclick = () => {
+                                 overlay.remove();
+                                 el.style.display = "block";
+                                 el.src = getProxyUrl(src) + "&retry=" + Date.now();
+                              };
+                              parent.appendChild(overlay);
+                            }
+                          }}
+                          ref={(el) => {
+                            const observer = new IntersectionObserver((entries) => {
+                              if (entries[0].isIntersecting) {
+                                setCurrentPage(imgIndex() + 1);
+                                setCurrentChapterInfo({ title: chapter.title, index: chIndex(), totalPages: chapter.images.length });
+                                updateHistory(chapter.chapterId, chapter.title, imgIndex() + 1, chapter.images.length);
+                                
+                                // Auto-trigger next chapter if near the end of the current list
+                                if (chIndex() === chapterList().length - 1 && imgIndex() > chapter.images.length - 5) {
+                                  loadNextChapterAutomatically();
+                                }
+                              }
+                            }, { threshold: 0.1 });
+                            observer.observe(el);
+                          }}
+                        />
+                      </div>
+                    );
+                  }}
+                </For>
+              </div>
+            )}
           </For>
 
-          <Show when={!loading() && images().length > 0}>
-            <div class="reader-footer-actions">
-               <button 
-                 onClick={(e) => { e.stopPropagation(); navigateChapter("next"); }} 
-                 class="next-ch-footer-btn"
-                 disabled={chapters().findIndex(c => {
-                   const normC = (c.id || "").split('?')[0].toLowerCase();
-                   const normP = (params.url || "").split('?')[0].toLowerCase();
-                   return normC === normP || normC.includes(normP) || normP.includes(normC);
-                 }) === 0}
-               >
-                  <span>Lanjut ke Chapter Berikutnya</span>
-                  <i>→</i>
-               </button>
-            </div>
-          </Show>
+          {/* 🏁 Footer Dinamis: Pemicu Bab Selanjutnya */}
+          <div 
+            class="end-scroll-trigger" 
+            ref={(el) => {
+              const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                  loadNextChapterAutomatically();
+                }
+              }, { threshold: 0.01 });
+              observer.observe(el);
+            }}
+            style={{ 
+               padding: "100px 20px", 
+               display: "flex", 
+               "flex-direction": "column", 
+               "align-items": "center", 
+               "justify-content": "center", 
+               "gap": "20px",
+               "background": "linear-gradient(180deg, transparent, rgba(var(--primary-rgb), 0.05))" 
+            }}
+          >
+             {(() => {
+                const currentList = chapterList();
+                if (currentList.length === 0) return null;
+                const lastLoadedId = currentList[currentList.length - 1].chapterId;
+                const allChapters = availableChapters();
+                const currentIndex = allChapters.findIndex(c => c.id === lastLoadedId);
+                const nextCh = allChapters[currentIndex - 1]; // Next chapter
+
+                if (nextCh) {
+                  return (
+                    <>
+                      <div class="spinner"></div>
+                      <p style={{ color: "var(--text-muted)", "font-size": "0.9rem", "font-weight": "800" }}>
+                         Sedang Menjahit {nextCh.title}...
+                      </p>
+                      <button 
+                         class="btn-primary" 
+                         style={{ "margin-top": "20px", "padding": "12px 40px", "font-weight": "900" }}
+                         onClick={() => loadNextChapterAutomatically()}
+                      >
+                         Muat {nextCh.title} Sekarang
+                      </button>
+                    </>
+                  );
+                } else {
+                  return (
+                    <>
+                       <div style={{ "font-size": "3rem", "margin-bottom": "10px" }}>🏁</div>
+                       <h2 style={{ color: "var(--primary)", "font-weight": "900" }}>TAMAT</h2>
+                       <p style={{ color: "var(--text-muted)", "margin-bottom": "20px" }}>Anda sudah berada di bab paling baru.</p>
+                       <button 
+                          class="btn-secondary" 
+                          style={{ "padding": "12px 40px", "border-radius": "50px" }}
+                          onClick={() => navigate(`/manga/${params.provider}/${encodeURIComponent(searchParams.source)}`)}
+                       >
+                          Kembali ke Halaman Detail
+                       </button>
+                    </>
+                  );
+                }
+             })()}
+          </div>
         </div>
       </div>
     </div>
