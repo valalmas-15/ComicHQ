@@ -15,26 +15,44 @@ function Reader() {
   const [error, setError] = createSignal(null);
   const [mangaId, setMangaId] = createSignal(null);
   const [showControls, setShowControls] = createSignal(true);
-  const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ title: "", index: 0, totalPages: 0 });
+  const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ id: "", title: "", index: 0, totalPages: 0 });
   const [currentPage, setCurrentPage] = createSignal(1);
 
   // 🛠️ Utility: Normalize IDs to avoid match failures due to query params
   const normalizeId = (url) => (url || "").split('?')[0].toLowerCase();
+  
+  // 🧭 Smart Direction Detection (Ascending vs Descending)
+  const isDescendingList = () => {
+     const all = availableChapters();
+     if (all.length < 2) return true;
+     // Helper to extract first number found in string
+     const getNum = (s) => {
+        const matches = (s || "").match(/(\d+(\.\d+)?)/);
+        return matches ? parseFloat(matches[0]) : 0;
+     };
+     const first = getNum(all[0].title);
+     const last = getNum(all[all.length - 1].title);
+     return first > last; // Newer to Older
+  };
 
   const getNextChapterData = () => {
     const currentList = chapterList();
     if (currentList.length === 0) return null;
 
-    // Use normalization to find the exact match in the full list
     const lastLoadedId = normalizeId(currentList[currentList.length - 1].chapterId);
     const all = availableChapters();
     const currentIndex = all.findIndex(c => normalizeId(c.id) === lastLoadedId);
 
-    // Standard for these providers (Descending): Index - 1 is the next chapter in time/story
-    if (currentIndex > 0) {
-      return all[currentIndex - 1];
+    if (currentIndex === -1) return null;
+
+    const isDesc = isDescendingList();
+    if (isDesc) {
+      // Descending (162, 161, 160...): Next is Index - 1
+      return currentIndex > 0 ? all[currentIndex - 1] : null;
+    } else {
+      // Ascending (1, 2, ..., 161, 162): Next is Index + 1
+      return currentIndex < all.length - 1 ? all[currentIndex + 1] : null;
     }
-    return null;
   };
 
   // 🖱️ Scroll Detection for Auto-Hide
@@ -179,13 +197,15 @@ function Reader() {
                     const all = availableChapters();
                     const currentId = currentChapterInfo().id || params.url;
                     const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    return idx === -1 || idx === all.length - 1;
+                    if (idx === -1) return true;
+                    // Prev (Kiri) Mati di BAB PERTAMA
+                    return isDescendingList() ? (idx === all.length - 1) : (idx === 0);
                  })()}
                  onClick={() => {
                     const all = availableChapters();
                     const currentId = currentChapterInfo().id || params.url;
                     const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    const prevCh = all[idx + 1];
+                    const prevCh = isDescendingList() ? all[idx + 1] : all[idx - 1];
                     if (prevCh) navigate(`/read/${params.provider}/${encodeURIComponent(prevCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(prevCh.title)}`);
                  }}
                >
@@ -217,13 +237,15 @@ function Reader() {
                     const all = availableChapters();
                     const currentId = currentChapterInfo().id || params.url;
                     const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    return idx === -1 || idx === 0;
+                    if (idx === -1) return true;
+                    // Next (Kanan) Mati di BAB TERBARU
+                    return isDescendingList() ? (idx === 0) : (idx === all.length - 1);
                  })()}
                  onClick={() => {
                     const all = availableChapters();
                     const currentId = currentChapterInfo().id || params.url;
                     const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    const nextCh = all[idx - 1];
+                    const nextCh = isDescendingList() ? all[idx - 1] : all[idx + 1];
                     if (nextCh) navigate(`/read/${params.provider}/${encodeURIComponent(nextCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(nextCh.title)}`);
                  }}
                >
