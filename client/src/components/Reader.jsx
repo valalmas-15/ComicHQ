@@ -126,7 +126,7 @@ function Reader() {
       {/* 1. Dynamic Header */}
       <div 
         class={`reader-controls top ${showControls() ? "visible" : ""}`} 
-        style={{ "z-index": "100", "pointer-events": showControls() ? "auto" : "none" }}
+        style={{ "z-index": "1000", "pointer-events": showControls() ? "auto" : "none" }}
       >
         <div class="reader-nav-content">
           <button 
@@ -136,14 +136,58 @@ function Reader() {
              <i class="fas fa-arrow-left"></i>
           </button>
           
-          <div class="reader-current-info">
-             <span class="ch-title-scroll">{currentChapterInfo().title}</span>
-             <span class="page-counter-scroll">{currentPage()} / {currentChapterInfo().totalPages}</span>
+          <div class="reader-header-main-ctrl">
+            <select 
+              class="chapter-dropdown-global-style"
+              value={(() => {
+                 const current = chapterList();
+                 return current.length > 0 ? current[0].chapterId : params.url;
+              })()}
+              onChange={(e) => {
+                 const target = availableChapters().find(c => c.id === e.target.value);
+                 if (target) {
+                   navigate(`/read/${params.provider}/${encodeURIComponent(target.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(target.title)}`);
+                 }
+              }}
+            >
+              <For each={availableChapters()}>
+                {(chapter) => (
+                  <option value={chapter.id}>
+                    {chapter.title}
+                  </option>
+                )}
+              </For>
+            </select>
+            
+            <div class="reader-status-pill">
+               <span>Hal {currentPage()} / {currentChapterInfo().totalPages}</span>
+            </div>
           </div>
 
           <div class="reader-nav-icons">
-             <button class="reader-icon-btn" onClick={() => setShowControls(false)}>
-                <i class="fas fa-expand"></i>
+             <button 
+               class="reader-icon-btn"
+               onClick={() => {
+                  const all = availableChapters();
+                  const currentId = chapterList()[0]?.chapterId || params.url;
+                  const idx = all.findIndex(c => c.id === currentId);
+                  const prevCh = all[idx + 1];
+                  if (prevCh) navigate(`/read/${params.provider}/${encodeURIComponent(prevCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(prevCh.title)}`);
+               }}
+             >
+                <i class="fas fa-chevron-left"></i>
+             </button>
+             <button 
+               class="reader-icon-btn active"
+               onClick={() => {
+                  const all = availableChapters();
+                  const currentId = chapterList()[0]?.chapterId || params.url;
+                  const idx = all.findIndex(c => c.id === currentId);
+                  const nextCh = all[idx - 1];
+                  if (nextCh) navigate(`/read/${params.provider}/${encodeURIComponent(nextCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(nextCh.title)}`);
+               }}
+             >
+                <i class="fas fa-chevron-right"></i>
              </button>
           </div>
         </div>
