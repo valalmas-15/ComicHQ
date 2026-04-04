@@ -18,6 +18,25 @@ function Reader() {
   const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ title: "", index: 0, totalPages: 0 });
   const [currentPage, setCurrentPage] = createSignal(1);
 
+  // 🛠️ Utility: Normalize IDs to avoid match failures due to query params
+  const normalizeId = (url) => (url || "").split('?')[0].toLowerCase();
+
+  const getNextChapterData = () => {
+    const currentList = chapterList();
+    if (currentList.length === 0) return null;
+
+    // Use normalization to find the exact match in the full list
+    const lastLoadedId = normalizeId(currentList[currentList.length - 1].chapterId);
+    const all = availableChapters();
+    const currentIndex = all.findIndex(c => normalizeId(c.id) === lastLoadedId);
+
+    // Standard for these providers (Descending): Index - 1 is the next chapter in time/story
+    if (currentIndex > 0) {
+      return all[currentIndex - 1];
+    }
+    return null;
+  };
+
   // 🖱️ Scroll Detection for Auto-Hide
   let lastScrollY = 0;
   const handleScroll = () => {
@@ -100,17 +119,12 @@ function Reader() {
   };
 
   const loadNextChapterAutomatically = async () => {
-    const currentList = chapterList();
-    if (currentList.length === 0) return;
-
-    const lastLoadedId = currentList[currentList.length - 1].chapterId;
-    const allChapters = availableChapters();
-    const currentIndex = allChapters.findIndex(c => c.id === lastLoadedId);
-
-    // Chapters are usually descending, so index - 1 is "Next"
-    const nextChapter = allChapters[currentIndex - 1];
-    if (nextChapter && !currentList.find(c => c.chapterId === nextChapter.id)) {
+    if (isFetching()) return;
+    const nextChapter = getNextChapterData();
+    if (nextChapter && !chapterList().find(c => normalizeId(c.chapterId) === normalizeId(nextChapter.id))) {
+      setIsFetching(true);
       await loadChapter(nextChapter.id, nextChapter.title);
+      setIsFetching(false);
     }
   };
 
@@ -163,15 +177,14 @@ function Reader() {
                  class="reader-icon-btn small"
                  disabled={(() => {
                     const all = availableChapters();
-                    const currentId = chapterList()[0]?.chapterId || params.url;
-                    const idx = all.findIndex(c => c.id === currentId);
-                    // 🏁 BAB PERTAMA: Prev (Kiri) Mati
+                    const currentId = currentChapterInfo().id || params.url;
+                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
                     return idx === -1 || idx === all.length - 1;
                  })()}
                  onClick={() => {
                     const all = availableChapters();
-                    const currentId = chapterList()[0]?.chapterId || params.url;
-                    const idx = all.findIndex(c => c.id === currentId);
+                    const currentId = currentChapterInfo().id || params.url;
+                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
                     const prevCh = all[idx + 1];
                     if (prevCh) navigate(`/read/${params.provider}/${encodeURIComponent(prevCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(prevCh.title)}`);
                  }}
@@ -181,10 +194,7 @@ function Reader() {
 
                <select 
                 class="chapter-dropdown-global-style"
-                value={(() => {
-                   const current = chapterList();
-                   return current.length > 0 ? current[0].chapterId : params.url;
-                })()}
+                value={currentChapterInfo().id || params.url}
                 onChange={(e) => {
                    const target = availableChapters().find(c => c.id === e.target.value);
                    if (target) {
@@ -202,17 +212,17 @@ function Reader() {
               </select>
 
               <button 
-                 class="reader-icon-btn small"
+                 class="reader-icon-btn active small"
                  disabled={(() => {
                     const all = availableChapters();
-                    const currentId = chapterList()[0]?.chapterId || params.url;
-                    const idx = all.findIndex(c => c.id === currentId);
+                    const currentId = currentChapterInfo().id || params.url;
+                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
                     return idx === -1 || idx === 0;
                  })()}
                  onClick={() => {
                     const all = availableChapters();
-                    const currentId = chapterList()[0]?.chapterId || params.url;
-                    const idx = all.findIndex(c => c.id === currentId);
+                    const currentId = currentChapterInfo().id || params.url;
+                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
                     const nextCh = all[idx - 1];
                     if (nextCh) navigate(`/read/${params.provider}/${encodeURIComponent(nextCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(nextCh.title)}`);
                  }}
@@ -298,7 +308,7 @@ function Reader() {
                                 updateHistory(chapter.chapterId, chapter.title, imgIndex() + 1, chapter.images.length);
                                 
                                 // Auto-trigger next chapter if near the end of the current list
-                                if (chIndex() === chapterList().length - 1 && imgIndex() > chapter.images.length - 5) {
+                                if (!isFetching() && chIndex() === chapterList().length - 1 && imgIndex() > chapter.images.length - 8) {
                                   loadNextChapterAutomatically();
                                 }
                               }
@@ -336,13 +346,7 @@ function Reader() {
             }}
           >
              {(() => {
-                const currentList = chapterList();
-                if (currentList.length === 0) return null;
-                const lastLoadedId = currentList[currentList.length - 1].chapterId;
-                const allChapters = availableChapters();
-                const currentIndex = allChapters.findIndex(c => c.id === lastLoadedId);
-                const nextCh = allChapters[currentIndex - 1]; // Next chapter
-
+                const nextCh = getNextChapterData();
                 if (nextCh) {
                   return (
                     <>
@@ -352,10 +356,11 @@ function Reader() {
                       </p>
                       <button 
                          class="btn-primary" 
+                         disabled={isFetching()}
                          style={{ "margin-top": "20px", "padding": "12px 40px", "font-weight": "900" }}
                          onClick={() => loadNextChapterAutomatically()}
                       >
-                         Muat {nextCh.title} Sekarang
+                         {isFetching() ? "Sedang Mengunduh..." : `Muat ${nextCh.title} Sekarang`}
                       </button>
                     </>
                   );
