@@ -15,44 +15,55 @@ function Reader() {
   const [error, setError] = createSignal(null);
   const [mangaId, setMangaId] = createSignal(null);
   const [showControls, setShowControls] = createSignal(true);
-  const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ id: "", title: "", index: 0, totalPages: 0 });
-  const [currentPage, setCurrentPage] = createSignal(1);
-
-  // 🛠️ Utility: Normalize IDs to avoid match failures due to query params
-  const normalizeId = (url) => (url || "").split('?')[0].toLowerCase();
-  
-  // 🧭 Smart Direction Detection (Ascending vs Descending)
-  const isDescendingList = () => {
-     const all = availableChapters();
-     if (all.length < 2) return true;
-     // Helper to extract first number found in string
-     const getNum = (s) => {
-        const matches = (s || "").match(/(\d+(\.\d+)?)/);
-        return matches ? parseFloat(matches[0]) : 0;
-     };
-     const first = getNum(all[0].title);
-     const last = getNum(all[all.length - 1].title);
-     return first > last; // Newer to Older
+  // 🧭 Absolut Numeric Navigation (Story Timeline)
+  const getNumeric = (s) => {
+     const matches = (s || "").match(/(\d+(\.\d+)?)/);
+     return matches ? parseFloat(matches[0]) : 0;
   };
 
   const getNextChapterData = () => {
     const currentList = chapterList();
     if (currentList.length === 0) return null;
 
-    const lastLoadedId = normalizeId(currentList[currentList.length - 1].chapterId);
+    const currentTitle = currentChapterInfo().title || (chapterList()[0]?.title);
+    const currentNum = getNumeric(currentTitle);
+    
+    // Find the chapter with the smallest number that is still GREATER than currentNum
     const all = availableChapters();
-    const currentIndex = all.findIndex(c => normalizeId(c.id) === lastLoadedId);
+    let nextCh = null;
+    let minDiff = Infinity;
 
-    if (currentIndex === -1) return null;
-
-    const isDesc = isDescendingList();
-    if (isDesc) {
-      // Descending (162, 161, 160...): Next is Index - 1
-      return currentIndex > 0 ? all[currentIndex - 1] : null;
-    } else {
-      // Ascending (1, 2, ..., 161, 162): Next is Index + 1
-      return currentIndex < all.length - 1 ? all[currentIndex + 1] : null;
+    for(const ch of all) {
+       const chNum = getNumeric(ch.title);
+       if (chNum > currentNum) {
+          const diff = chNum - currentNum;
+          if (diff < minDiff) {
+             minDiff = diff;
+             nextCh = ch;
+          }
+       }
     }
+    return nextCh; 
+  };
+
+  const getPrevChapterData = () => {
+     const currentTitle = currentChapterInfo().title || (chapterList()[0]?.title);
+     const currentNum = getNumeric(currentTitle);
+     const all = availableChapters();
+     let prevCh = null;
+     let minDiff = Infinity;
+
+     for(const ch of all) {
+        const chNum = getNumeric(ch.title);
+        if (chNum < currentNum) {
+           const diff = currentNum - chNum;
+           if (diff < minDiff) {
+              minDiff = diff;
+              prevCh = ch;
+           }
+        }
+     }
+     return prevCh;
   };
 
   // 🖱️ Scroll Detection for Auto-Hide
@@ -193,19 +204,9 @@ function Reader() {
             <div class="reader-row-nav-group">
                <button 
                  class="reader-icon-btn small"
-                 disabled={(() => {
-                    const all = availableChapters();
-                    const currentId = currentChapterInfo().id || params.url;
-                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    if (idx === -1) return true;
-                    // Prev (Kiri) Mati di BAB PERTAMA
-                    return isDescendingList() ? (idx === all.length - 1) : (idx === 0);
-                 })()}
+                 disabled={!getPrevChapterData()}
                  onClick={() => {
-                    const all = availableChapters();
-                    const currentId = currentChapterInfo().id || params.url;
-                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    const prevCh = isDescendingList() ? all[idx + 1] : all[idx - 1];
+                    const prevCh = getPrevChapterData();
                     if (prevCh) navigate(`/read/${params.provider}/${encodeURIComponent(prevCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(prevCh.title)}`);
                  }}
                >
@@ -233,19 +234,9 @@ function Reader() {
 
               <button 
                  class="reader-icon-btn active small"
-                 disabled={(() => {
-                    const all = availableChapters();
-                    const currentId = currentChapterInfo().id || params.url;
-                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    if (idx === -1) return true;
-                    // Next (Kanan) Mati di BAB TERBARU
-                    return isDescendingList() ? (idx === 0) : (idx === all.length - 1);
-                 })()}
+                 disabled={!getNextChapterData()}
                  onClick={() => {
-                    const all = availableChapters();
-                    const currentId = currentChapterInfo().id || params.url;
-                    const idx = all.findIndex(c => normalizeId(c.id) === normalizeId(currentId));
-                    const nextCh = isDescendingList() ? all[idx - 1] : all[idx + 1];
+                    const nextCh = getNextChapterData();
                     if (nextCh) navigate(`/read/${params.provider}/${encodeURIComponent(nextCh.id)}?source=${encodeURIComponent(searchParams.source)}&title=${encodeURIComponent(nextCh.title)}`);
                  }}
                >
