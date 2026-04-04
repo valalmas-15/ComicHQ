@@ -24,6 +24,17 @@ function Reader() {
      return matches ? parseFloat(matches[0]) : 0;
   };
 
+  // 🧭 ID Normalization to handle cases and slash differences
+  const normalizeId = (val) => {
+    const id = typeof val === 'object' && val !== null ? (val.chapter_id || val.id) : val;
+    if (!id) return "";
+    try {
+      const clean = id.toString().toLowerCase().trim().split('?')[0]; 
+      const parts = clean.split('/').filter(Boolean);
+      return parts[parts.length - 1] || clean;
+    } catch(e) { return String(id).toLowerCase().trim(); }
+  };
+
   const getNextChapterData = () => {
     const currentList = chapterList();
     if (currentList.length === 0) return null;
@@ -140,7 +151,7 @@ function Reader() {
         const newChapterObj = { chapterId, title, images: pagesData, loaded: true };
         if (isInitial) {
           setChapterList([newChapterObj]);
-          setCurrentChapterInfo({ title, index: 0, totalPages: pagesData.length });
+          setCurrentChapterInfo({ id: chapterId, title, index: 0, totalPages: pagesData.length });
         } else {
           setChapterList(prev => [...prev, newChapterObj]);
         }
@@ -328,7 +339,7 @@ function Reader() {
                             const observer = new IntersectionObserver((entries) => {
                               if (entries[0].isIntersecting) {
                                 setCurrentPage(imgIndex() + 1);
-                                setCurrentChapterInfo({ title: chapter.title, index: chIndex(), totalPages: chapter.images.length });
+                                setCurrentChapterInfo({ id: chapter.chapterId, title: chapter.title, index: chIndex(), totalPages: chapter.images.length });
                                 updateHistory(chapter.chapterId, chapter.title, imgIndex() + 1, chapter.images.length);
                                 
                                 // Auto-trigger next chapter if near the end of the current list
