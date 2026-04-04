@@ -18,6 +18,26 @@ function Reader() {
   const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ title: "", index: 0, totalPages: 0 });
   const [currentPage, setCurrentPage] = createSignal(1);
 
+  // 🖱️ Scroll Detection for Auto-Hide
+  let lastScrollY = 0;
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > lastScrollY && currentScrollY > 150) {
+      if (showControls()) setShowControls(false); // Hide on scroll down
+    } else if (currentScrollY < lastScrollY) {
+      if (!showControls()) setShowControls(true); // Show on scroll up
+    }
+    lastScrollY = currentScrollY;
+  };
+
+  onMount(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+  });
+
+  onCleanup(() => {
+    window.removeEventListener("scroll", handleScroll);
+  });
+
   // Initial Load
   createEffect(() => {
     const chapterUrl = params.url;
@@ -141,6 +161,13 @@ function Reader() {
             <div class="reader-row-nav-group">
                <button 
                  class="reader-icon-btn small"
+                 disabled={(() => {
+                    const all = availableChapters();
+                    const currentId = chapterList()[0]?.chapterId || params.url;
+                    const idx = all.findIndex(c => c.id === currentId);
+                    // 🏁 BAB PERTAMA: Prev (Kiri) Mati
+                    return idx === -1 || idx === all.length - 1;
+                 })()}
                  onClick={() => {
                     const all = availableChapters();
                     const currentId = chapterList()[0]?.chapterId || params.url;
@@ -176,6 +203,12 @@ function Reader() {
 
               <button 
                  class="reader-icon-btn small"
+                 disabled={(() => {
+                    const all = availableChapters();
+                    const currentId = chapterList()[0]?.chapterId || params.url;
+                    const idx = all.findIndex(c => c.id === currentId);
+                    return idx === -1 || idx === 0;
+                 })()}
                  onClick={() => {
                     const all = availableChapters();
                     const currentId = chapterList()[0]?.chapterId || params.url;

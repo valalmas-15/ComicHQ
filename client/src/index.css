@@ -1291,7 +1291,7 @@ body:has(.reader-container) {
   padding: 100px 0;
 }
 
-/* 🎨 Reader Header 2-Rows Layout */
+/* 🎨 Reader Header 2-Rows Layout & Auto-Hide Animation */
 .reader-controls.top {
   position: fixed !important;
   top: 0 !important;
@@ -1302,6 +1302,12 @@ body:has(.reader-container) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
   padding: 8px 12px 6px 12px !important;
   z-index: 9999 !important;
+  transform: translateY(-100%) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.reader-controls.top.visible {
+  transform: translateY(0) !important;
 }
 
 .reader-nav-content-rows {
@@ -1354,6 +1360,13 @@ body:has(.reader-container) {
   width: 30px !important;
   height: 30px !important;
   font-size: 0.8rem !important;
+}
+
+.reader-icon-btn:disabled {
+  opacity: 0.25 !important;
+  filter: grayscale(1) !important;
+  pointer-events: none !important;
+  cursor: default !important;
 }
 
 .reader-loading {
