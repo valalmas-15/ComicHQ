@@ -15,6 +15,9 @@ function Reader() {
   const [error, setError] = createSignal(null);
   const [mangaId, setMangaId] = createSignal(null);
   const [showControls, setShowControls] = createSignal(true);
+  const [currentChapterInfo, setCurrentChapterInfo] = createSignal({ id: "", title: "", index: 0, totalPages: 0 });
+  const [currentPage, setCurrentPage] = createSignal(1);
+  const [isFetching, setIsFetching] = createSignal(false);
   // 🧭 Absolut Numeric Navigation (Story Timeline)
   const getNumeric = (s) => {
      const matches = (s || "").match(/(\d+(\.\d+)?)/);
