@@ -221,7 +221,12 @@ function Reader() {
 
                <select 
                 class="chapter-dropdown-global-style"
-                value={currentChapterInfo().id || params.url}
+                value={(() => {
+                   const currId = normalizeId(currentChapterInfo().id || params.url);
+                   const all = availableChapters();
+                   const match = all.find(c => normalizeId(c.id) === currId);
+                   return match ? match.id : (currentChapterInfo().id || params.url);
+                })()}
                 onChange={(e) => {
                    const target = availableChapters().find(c => c.id === e.target.value);
                    if (target) {
